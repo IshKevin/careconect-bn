@@ -68,3 +68,17 @@ export const healthCheck = async (): Promise<{
     };
   }
 };
+
+// Helper function to execute raw SQL queries
+export const executeRawQuery = async <T = any>(
+  strings: TemplateStringsArray,
+  ...values: any[]
+): Promise<T[]> => {
+  try {
+    const result = await client(strings, ...values);
+    return result as unknown as T[];
+  } catch (error) {
+    console.error('Raw query execution failed:', error);
+    throw error;
+  }
+};
