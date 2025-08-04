@@ -1,5 +1,5 @@
 import { StatusCodes } from 'http-status-codes';
-import { AppError } from '@/types';
+import { AppError } from '../types';
 
 // Base application error class
 export class BaseError extends Error implements AppError {

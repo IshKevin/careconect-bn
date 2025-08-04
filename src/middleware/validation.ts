@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { validationResult, ValidationChain } from 'express-validator';
-import { responseHelpers } from '@/utils/response';
-import { logger } from '@/config/logger';
+import { responseHelpers } from '../utils/response';
+import { logger } from '../config/logger';
 
 // Validation middleware to handle express-validator results
 export const validateRequest = (req: Request, res: Response, next: NextFunction): void => {

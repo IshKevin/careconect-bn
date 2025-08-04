@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { logger } from '@/config/logger';
+import { logger } from '../config/logger';
 
 // Security headers middleware
 export const securityHeaders = (_req: Request, res: Response, next: NextFunction): void => {
