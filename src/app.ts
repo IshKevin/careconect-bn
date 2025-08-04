@@ -1,8 +1,8 @@
 import express from 'express';
 import helmet from 'helmet';
-import { config } from '@/config/env';
-import { errorHandler } from '@/middleware/errorHandler';
-import { notFoundHandler } from '@/middleware/notFoundHandler';
+import { config } from './config/env';
+import { errorHandler } from './middleware/errorHandler';
+import { notFoundHandler } from './middleware/notFoundHandler';
 import 'express-async-errors';
 
 // Create Express application
