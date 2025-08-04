@@ -5,12 +5,17 @@ import { z } from 'zod';
 dotenvConfig();
 
 
+
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().transform(Number).default('3000'),
   API_VERSION: z.string().default('v1'),
 
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
+  DB_MAX_CONNECTIONS: z.string().transform(Number).default('20'),
+  DB_IDLE_TIMEOUT: z.string().transform(Number).default('20'),
+  DB_CONNECT_TIMEOUT: z.string().transform(Number).default('10'),
+  
 
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
   JWT_EXPIRES_IN: z.string().default('24h'),
