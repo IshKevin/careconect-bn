@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { logger } from '@/config/logger';
-import { createErrorResponse } from '@/utils/response';
+import { logger } from '../config/logger';
+import { createErrorResponse } from '../utils/response';
 
 // 404 Not Found handler middleware
 export const notFoundHandler = (req: Request, res: Response, _next: NextFunction): void => {

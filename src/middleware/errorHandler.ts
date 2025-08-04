@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { logger } from '@/config/logger';
-import { config } from '@/config/env';
+import { logger } from '../config/logger';
+import { config } from '../config/env';
 import { BaseError, isAppError, getErrorSeverity, getErrorCategory } from '@/utils/errors';
-import { createErrorResponse } from '@/utils/response';
+import { createErrorResponse } from '../utils/response';
 // import { ValidationError } from 'express-validator'; // Not used directly
 
 // Error handler middleware
