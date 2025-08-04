@@ -1,92 +1,154 @@
-// Export all schemas and relations
-export * from './users';
-export * from './patients';
-export * from './doctors';
-
-// Re-export commonly used types
-export type {
-  UserType,
-  AccountStatus,
-  Gender,
-  AddressType,
-  MfaMethodType,
-  BloodType,
-  ConditionType,
-  Severity,
-  AllergenType,
-  MedicationRoute,
-  CommunicationMethod,
-  Relationship,
-  AccessLevel,
-  VerificationStatus,
-  ConsultationFeeTier,
-  FacilityType,
-  CredentialType,
-} from '../types/schema-types';
-
-// Schema collections for easier imports
-import {
+// Export all tables
+export {
   users,
-  userProfiles,
-  userAddresses,
-  userSessions,
-  multiFactorAuth,
-  userPermissions,
-  auditLogs,
+  userTypeEnum,
+  accountStatusEnum,
+  insertUserSchema,
+  selectUserSchema,
+  updateUserSchema,
 } from './users';
 
-import {
-  patients,
-  patientMedicalHistory,
-  patientAllergies,
-  patientMedications,
-  patientPreferences,
-  patientFamilyLinks,
-} from './patients';
+export {
+  userProfiles,
+  userProfilesRelations,
+  insertUserProfileSchema,
+  selectUserProfileSchema,
+  updateUserProfileSchema,
+} from './user-profiles';
 
-import {
+export {
   doctors,
-  doctorSpecializations,
-  doctorCredentials,
-  doctorPracticeLocations,
-  doctorReviews,
-  doctorStatistics,
+  doctorsRelations,
+  insertDoctorSchema,
+  selectDoctorSchema,
+  updateDoctorSchema,
+  doctorWithUserSchema,
 } from './doctors';
 
-// User-related schemas
-export const userSchemas = {
-  users,
-  userProfiles,
-  userAddresses,
-  userSessions,
-  multiFactorAuth,
-  userPermissions,
-  auditLogs,
-};
+export {
+  doctorAvailability,
+  doctorAvailabilityRelations,
+  daysOfWeek,
+  insertDoctorAvailabilitySchema,
+  selectDoctorAvailabilitySchema,
+  updateDoctorAvailabilitySchema,
+  availabilityWithDoctorSchema,
+  timeSlotSchema,
+} from './doctor-availability';
 
-// Patient-related schemas
-export const patientSchemas = {
-  patients,
-  patientMedicalHistory,
-  patientAllergies,
-  patientMedications,
-  patientPreferences,
-  patientFamilyLinks,
-};
+export {
+  appointments,
+  appointmentTypeEnum,
+  appointmentStatusEnum,
+  appointmentsRelations,
+  insertAppointmentSchema,
+  selectAppointmentSchema,
+  updateAppointmentSchema,
+  appointmentWithDetailsSchema,
+  bookAppointmentSchema,
+  appointmentFiltersSchema,
+} from './appointments';
 
-// Doctor-related schemas
-export const doctorSchemas = {
-  doctors,
-  doctorSpecializations,
-  doctorCredentials,
-  doctorPracticeLocations,
-  doctorReviews,
-  doctorStatistics,
-};
+export {
+  consultations,
+  consultationsRelations,
+  insertConsultationSchema,
+  selectConsultationSchema,
+  updateConsultationSchema,
+  consultationWithDetailsSchema,
+  createConsultationSchema,
+  consultationFiltersSchema,
+  consultationSummarySchema,
+} from './consultations';
 
-// All schemas combined
-export const allSchemas = {
-  ...userSchemas,
-  ...patientSchemas,
-  ...doctorSchemas,
-};
+export {
+  invoices,
+  invoiceStatusEnum,
+  invoicesRelations,
+  insertInvoiceSchema,
+  selectInvoiceSchema,
+  updateInvoiceSchema,
+  invoiceWithDetailsSchema,
+  createInvoiceSchema,
+  updateInvoiceStatusSchema,
+  invoiceFiltersSchema,
+  invoiceSummarySchema,
+  paymentRecordSchema,
+} from './invoices';
+
+// Export all types
+export type {
+  User,
+  NewUser,
+  UpdateUser,
+  UserType,
+  AccountStatus,
+} from './users';
+
+export type {
+  UserProfile,
+  NewUserProfile,
+  UpdateUserProfile,
+} from './user-profiles';
+
+export type {
+  Doctor,
+  NewDoctor,
+  UpdateDoctor,
+  DoctorWithUser,
+  Specialty,
+} from './doctors';
+
+export type {
+  DoctorAvailability,
+  NewDoctorAvailability,
+  UpdateDoctorAvailability,
+  AvailabilityWithDoctor,
+  TimeSlot,
+  DayOfWeek,
+} from './doctor-availability';
+
+export type {
+  Appointment,
+  NewAppointment,
+  UpdateAppointment,
+  AppointmentWithDetails,
+  BookAppointmentRequest,
+  AppointmentFilters,
+  AppointmentType,
+  AppointmentStatus,
+} from './appointments';
+
+export type {
+  Consultation,
+  NewConsultation,
+  UpdateConsultation,
+  ConsultationWithDetails,
+  CreateConsultationRequest,
+  ConsultationFilters,
+  ConsultationSummary,
+} from './consultations';
+
+export type {
+  Invoice,
+  NewInvoice,
+  UpdateInvoice,
+  InvoiceWithDetails,
+  CreateInvoiceRequest,
+  UpdateInvoiceStatusRequest,
+  InvoiceFilters,
+  InvoiceSummary,
+  PaymentRecord,
+  InvoiceStatus,
+} from './invoices';
+
+// Common utility schemas
+export const paginationSchema = {
+  page: { type: 'number', minimum: 1, default: 1 },
+  limit: { type: 'number', minimum: 1, maximum: 100, default: 10 },
+} as const;
+
+export const timestampSchema = {
+  createdAt: { type: 'string', format: 'date-time' },
+  updatedAt: { type: 'string', format: 'date-time' },
+} as const;

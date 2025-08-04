@@ -1,7 +1,7 @@
 import { app } from './app';
-import { config } from '@/config/env';
-import { testConnection, closeConnection } from '@/config/database';
-import { logger } from '@/config/logger';
+import { config } from './config/env';
+import { testConnection, closeConnection } from './config/database';
+import { logger } from './config/logger';
 
 // Server startup function
 const startServer = async (): Promise<void> => {
