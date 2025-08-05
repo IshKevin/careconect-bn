@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import { ApiResponse, PaginationParams } from '@/types';
+import { ApiResponse, PaginationParams } from '../types';
 import { config } from '../config/env';
 
 // Generate request ID for tracking
