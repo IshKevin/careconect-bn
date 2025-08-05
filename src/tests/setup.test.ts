@@ -1,5 +1,5 @@
-import { config } from '@/config/env';
-import { logger } from '@/config/logger';
+import { config } from '../config/env';
+import { logger } from '../config/logger';
 
 describe('Project Setup', () => {
   test('should load environment configuration', () => {
