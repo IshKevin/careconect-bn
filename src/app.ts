@@ -4,6 +4,7 @@ import { config } from './config/env';
 import { errorHandler } from './middleware/errorHandler';
 import { notFoundHandler } from './middleware/notFoundHandler';
 import 'express-async-errors';
+import { apiRouter } from './routes';
 
 // Create Express application
 const app = express();
@@ -31,6 +32,8 @@ app.use(helmet({
 // Body parsing middleware
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+
+
 
 // Health check endpoint
 app.get('/health', (_req, res) => {
@@ -61,6 +64,8 @@ app.get('/', (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+app.use(apiRouter);
 
 // 404 handler for undefined routes
 app.use(notFoundHandler);
