@@ -1,10 +1,7 @@
 import { config as dotenvConfig } from 'dotenv';
 import { z } from 'zod';
 
-
 dotenvConfig();
-
-
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
@@ -15,10 +12,12 @@ const envSchema = z.object({
   DB_MAX_CONNECTIONS: z.string().transform(Number).default('20'),
   DB_IDLE_TIMEOUT: z.string().transform(Number).default('20'),
   DB_CONNECT_TIMEOUT: z.string().transform(Number).default('10'),
-  
 
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
-  JWT_EXPIRES_IN: z.string().default('24h'),
+  JWT_REFRESH_SECRET: z.string().min(32, 'JWT_REFRESH_SECRET must be at least 32 characters'),
+  JWT_RESET_SECRET: z.string().min(32, 'JWT_RESET_SECRET must be at least 32 characters'),
+  JWT_EXPIRES_IN: z.string().default('1h'),
+  JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
 
   ENCRYPTION_KEY: z.string().length(32, 'ENCRYPTION_KEY must be exactly 32 characters'),
   HASH_SALT_ROUNDS: z.string().transform(Number).default('12'),
@@ -29,7 +28,6 @@ const envSchema = z.object({
 
 const envVars = envSchema.parse(process.env);
 
-
 export const config = {
   env: envVars.NODE_ENV,
   port: envVars.PORT,
@@ -37,11 +35,17 @@ export const config = {
 
   database: {
     url: envVars.DATABASE_URL,
+    maxConnections: envVars.DB_MAX_CONNECTIONS,
+    idleTimeout: envVars.DB_IDLE_TIMEOUT,
+    connectTimeout: envVars.DB_CONNECT_TIMEOUT,
   },
 
   jwt: {
     secret: envVars.JWT_SECRET,
+    refreshSecret: envVars.JWT_REFRESH_SECRET,
+    resetSecret: envVars.JWT_RESET_SECRET,
     expiresIn: envVars.JWT_EXPIRES_IN,
+    refreshExpiresIn: envVars.JWT_REFRESH_EXPIRES_IN,
   },
 
   encryption: {

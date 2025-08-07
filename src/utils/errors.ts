@@ -202,3 +202,14 @@ export const getErrorCategory = (error: AppError): string => {
   if (error instanceof ComplianceError || error instanceof DataPrivacyError) return 'compliance';
   return 'general';
 };
+
+export class CustomError extends Error {
+  constructor(
+    public code: string,
+    public override message: string,
+    public statusCode: number
+  ) {
+    super(message);
+    this.name = 'CustomError';
+  }
+}

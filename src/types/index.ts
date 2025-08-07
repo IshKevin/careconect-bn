@@ -1,4 +1,22 @@
 import { Request } from 'express';
+import { User } from '../db/schemas/users';
+
+declare global {
+  namespace Express {
+    interface Request {
+      user?: User;
+    }
+  }
+}
+
+
+
+declare module 'express' {
+  interface Request {
+    requestId?: string;
+    user?: { userId: string; userType: string };
+  }
+}
 
 // User types
 export type UserType = 'patient' | 'doctor' | 'admin' | 'super_admin';
@@ -61,25 +79,25 @@ export type FacilityType = 'hospital' | 'clinic' | 'private_practice' | 'health_
 
 export type DoctorAvailabilityStatus = 'available' | 'busy' | 'offline' | 'in_consultation' | 'break';
 
-export type SpecializationType = 
-  | 'general_medicine' 
-  | 'cardiology' 
-  | 'dermatology' 
-  | 'endocrinology' 
-  | 'gastroenterology' 
-  | 'neurology' 
-  | 'oncology' 
-  | 'orthopedics' 
-  | 'pediatrics' 
-  | 'psychiatry' 
-  | 'radiology' 
-  | 'surgery' 
-  | 'gynecology' 
-  | 'ophthalmology' 
-  | 'ent' 
-  | 'urology' 
-  | 'emergency_medicine' 
-  | 'family_medicine' 
+export type SpecializationType =
+  | 'general_medicine'
+  | 'cardiology'
+  | 'dermatology'
+  | 'endocrinology'
+  | 'gastroenterology'
+  | 'neurology'
+  | 'oncology'
+  | 'orthopedics'
+  | 'pediatrics'
+  | 'psychiatry'
+  | 'radiology'
+  | 'surgery'
+  | 'gynecology'
+  | 'ophthalmology'
+  | 'ent'
+  | 'urology'
+  | 'emergency_medicine'
+  | 'family_medicine'
   | 'internal_medicine'
   | 'other';
 
@@ -108,16 +126,16 @@ export type MessageType = 'text' | 'image' | 'document' | 'voice' | 'video' | 's
 
 export type MessageStatus = 'sent' | 'delivered' | 'read' | 'deleted' | 'failed';
 
-export type NotificationType = 
-  | 'appointment_reminder' 
-  | 'payment_due' 
-  | 'test_results' 
-  | 'system_alert' 
-  | 'marketing' 
-  | 'medication_reminder' 
-  | 'follow_up_reminder' 
-  | 'emergency_alert' 
-  | 'welcome' 
+export type NotificationType =
+  | 'appointment_reminder'
+  | 'payment_due'
+  | 'test_results'
+  | 'system_alert'
+  | 'marketing'
+  | 'medication_reminder'
+  | 'follow_up_reminder'
+  | 'emergency_alert'
+  | 'welcome'
   | 'verification'
   | 'security_alert';
 
@@ -126,16 +144,16 @@ export type DeliveryMethod = 'in_app' | 'email' | 'sms' | 'push_notification' | 
 export type PriorityLevel = 'low' | 'medium' | 'high' | 'urgent' | 'critical';
 
 // Document types
-export type DocumentType = 
-  | 'medical_record' 
-  | 'prescription' 
-  | 'lab_result' 
-  | 'imaging' 
-  | 'insurance' 
-  | 'identification' 
-  | 'vaccination_card' 
-  | 'discharge_summary' 
-  | 'referral_letter' 
+export type DocumentType =
+  | 'medical_record'
+  | 'prescription'
+  | 'lab_result'
+  | 'imaging'
+  | 'insurance'
+  | 'identification'
+  | 'vaccination_card'
+  | 'discharge_summary'
+  | 'referral_letter'
   | 'consent_form'
   | 'other';
 
