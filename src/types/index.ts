@@ -9,6 +9,15 @@ declare global {
   }
 }
 
+
+
+declare module 'express' {
+  interface Request {
+    requestId?: string;
+    user?: { userId: string; userType: string };
+  }
+}
+
 // User types
 export type UserType = 'patient' | 'doctor' | 'admin' | 'super_admin';
 
