@@ -23,7 +23,7 @@ const corsOptions = {
     const allowedOrigins = [
       'http://localhost:3000',
       'http://localhost:3001', 
-      'https://your-frontend-domain.com', // Replace with your actual frontend domain
+      'https://careconnectdemoview.netlify.app/', // Replace with your actual frontend domain
       // Add other domains as needed
     ];
     
