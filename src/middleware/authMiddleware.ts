@@ -5,18 +5,30 @@ import { responseHelpers } from '../utils/responseHelpers';
 import { AuthenticationError } from '../utils/errors';
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const token = req.header('Authorization')?.replace('Bearer ', '');
+  const authHeader = req.header('Authorization') || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.substring(7).trim() : '';
 
   if (!token) {
     return responseHelpers.unauthorized(res, 'Authentication required', req.requestId);
   }
 
   try {
-    const decoded = jwt.verify(token, config.jwt.secret) as { userId: string; userType: string };
+    const decoded = jwt.verify(token, config.jwt.secret, {
+      algorithms: ['HS256'],
+      issuer: config.jwt.issuer,
+      audience: config.jwt.audience,
+      clockTolerance: 5, // seconds
+    }) as { userId: string; userType: string; iss?: string; aud?: string };
+
+    if (!decoded.userId || !decoded.userType) {
+      return responseHelpers.unauthorized(res, new AuthenticationError('Invalid token payload').message, req.requestId);
+    }
+
     req.user = { userId: decoded.userId, userType: decoded.userType };
     next();
-  } catch (error) {
-    return responseHelpers.unauthorized(res, new AuthenticationError('Invalid token').message, req.requestId);
+  } catch (error: any) {
+    const message = error?.name === 'TokenExpiredError' ? 'Token expired' : 'Invalid token';
+    return responseHelpers.unauthorized(res, new AuthenticationError(message).message, req.requestId);
   }
 };
 
