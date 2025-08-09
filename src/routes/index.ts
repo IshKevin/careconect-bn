@@ -3,7 +3,8 @@ import { config } from '../config/env';
 
 import { authRouter } from './auth.router';
 import userRouter from './user.router';
-import patientRouter  from './patient.router'
+import patientRouter from './patient.router'
+import publicRouter from './public.router';
 //import doctorRouter from './doctor.router';
 //import appointmentRouter from './appointment.router';
 // import adminRouter from './admin.router';
@@ -14,11 +15,14 @@ import patientRouter  from './patient.router'
 // import searchRouter from './search.router';
 // import miscRouter from './misc.router';
 
-const router = Router(); 
+const router = Router();
 
 router.use(`/api/${config.apiVersion}/auth`, authRouter);
 router.use(`/api/${config.apiVersion}/users`, userRouter);
 router.use(`/api/${config.apiVersion}/patient`, patientRouter);
+router.use(`/api/${config.apiVersion}/public`, publicRouter);
+// Compatibility alias: /user -> /users
+router.use(`/api/${config.apiVersion}/user`, userRouter);
 //router.use(`/api/${config.apiVersion}/doctors`, doctorRouter);
 //router.use(`/api/${config.apiVersion}/appointments`, appointmentRouter);
 // router.use(adminRouter);
