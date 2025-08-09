@@ -16,8 +16,10 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
   JWT_REFRESH_SECRET: z.string().min(32, 'JWT_REFRESH_SECRET must be at least 32 characters'),
   JWT_RESET_SECRET: z.string().min(32, 'JWT_RESET_SECRET must be at least 32 characters'),
-  JWT_EXPIRES_IN: z.string().default('1h'),
-  JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
+  JWT_EXPIRES_IN: z.string().default('8h'),
+  JWT_REFRESH_EXPIRES_IN: z.string().default('30d'),
+  JWT_ISSUER: z.string().default('careconnect-bn'),
+  JWT_AUDIENCE: z.string().default('careconnect-api'),
 
   ENCRYPTION_KEY: z.string().length(32, 'ENCRYPTION_KEY must be exactly 32 characters'),
   HASH_SALT_ROUNDS: z.string().transform(Number).default('12'),
@@ -46,6 +48,8 @@ export const config = {
     resetSecret: envVars.JWT_RESET_SECRET,
     expiresIn: envVars.JWT_EXPIRES_IN,
     refreshExpiresIn: envVars.JWT_REFRESH_EXPIRES_IN,
+    issuer: envVars.JWT_ISSUER,
+    audience: envVars.JWT_AUDIENCE,
   },
 
   encryption: {

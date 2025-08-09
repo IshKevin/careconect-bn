@@ -117,6 +117,8 @@ export const phoneVerificationConfirmSchema = z.object({
 export const updateUserProfileSchema = z.object({
   email: z.string().email('Invalid email format').optional(),
   phoneNumber: z.string().regex(/^\+250\d{9}$/, 'Phone number must be in format +250XXXXXXXXX').optional(),
+  firstName: z.string().min(1, 'First name is required').max(100, 'First name too long').optional(),
+  lastName: z.string().min(1, 'Last name is required').max(100, 'Last name too long').optional(),
 });
 
 // Admin user management schemas

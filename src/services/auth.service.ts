@@ -125,9 +125,9 @@ export class AuthService {
         ...user[0],
         profile: profile[0]
           ? {
-              firstName: profile[0].firstName,
-              lastName: profile[0].lastName,
-            }
+            firstName: profile[0].firstName,
+            lastName: profile[0].lastName,
+          }
           : undefined,
       },
     };
@@ -158,7 +158,7 @@ export class AuthService {
       phoneNumber,
       passwordHash,
       userType,
-      accountStatus:'active', // to be changed into 'pending_verification', 
+      accountStatus: 'active', // to be changed into 'pending_verification', 
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -292,26 +292,35 @@ export class AuthService {
   }
 
   private generateAccessToken(userId: string, userType: string): string {
-    return jwt.sign(
-      { userId, userType },
-      config.jwt.secret,
-      { expiresIn: config.jwt.expiresIn } as any
-    );
+    const payload = { userId, userType };
+    const options: jwt.SignOptions = {
+      expiresIn: config.jwt.expiresIn as jwt.SignOptions['expiresIn'],
+      issuer: config.jwt.issuer,
+      audience: config.jwt.audience,
+      algorithm: 'HS256',
+    };
+    return jwt.sign(payload, config.jwt.secret, options);
   }
 
   private generateRefreshToken(userId: string): string {
-    return jwt.sign(
-      { userId },
-      config.jwt.refreshSecret,
-      { expiresIn: config.jwt.refreshExpiresIn } as any
-    );
+    const payload = { userId };
+    const options: jwt.SignOptions = {
+      expiresIn: config.jwt.refreshExpiresIn as jwt.SignOptions['expiresIn'],
+      issuer: config.jwt.issuer,
+      audience: config.jwt.audience,
+      algorithm: 'HS256',
+    };
+    return jwt.sign(payload, config.jwt.refreshSecret, options);
   }
 
   private generateResetToken(userId: string): string {
-    return jwt.sign(
-      { userId },
-      config.jwt.resetSecret,
-      { expiresIn: '1h' }
-    );
+    const payload = { userId };
+    const options: jwt.SignOptions = {
+      expiresIn: '2h',
+      issuer: config.jwt.issuer,
+      audience: config.jwt.audience,
+      algorithm: 'HS256',
+    };
+    return jwt.sign(payload, config.jwt.resetSecret, options);
   }
 }
