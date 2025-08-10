@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { 
+import {
   PatientService,
   createPatientProfileSchema,
   addMedicalHistorySchema,
@@ -249,7 +249,7 @@ export class PatientController {
 
       // Validate request body
       const validatedData = addMedicalHistorySchema.parse(req.body);
-      
+
       const result = await this.patientService.addMedicalHistory(userId, validatedData);
       res.status(201).json(result);
     } catch (error) {
@@ -310,7 +310,7 @@ export class PatientController {
 
       // Validate request body
       const validatedData = addAllergySchema.parse(req.body);
-      
+
       const result = await this.patientService.addAllergy(userId, validatedData);
       res.status(201).json(result);
     } catch (error) {
@@ -371,7 +371,7 @@ export class PatientController {
 
       // Validate request body
       const validatedData = addMedicationSchema.parse(req.body);
-      
+
       const result = await this.patientService.addMedication(userId, validatedData);
       res.status(201).json(result);
     } catch (error) {
@@ -459,7 +459,7 @@ export class PatientController {
 
       // Validate request body
       const validatedData = updatePreferencesSchema.parse(req.body);
-      
+
       const result = await this.patientService.updatePreferences(userId, validatedData);
       res.status(200).json(result);
     } catch (error) {

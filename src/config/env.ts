@@ -60,5 +60,6 @@ export const config = {
   rwanda: {
     timezone: envVars.RWANDA_TIMEZONE,
     currency: envVars.DEFAULT_CURRENCY,
+    languages: ['en', 'rw', 'fr'], // Add language support for Rwanda
   },
 } as const;
