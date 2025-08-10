@@ -21,8 +21,8 @@ export const getTimezones = async (req: Request, res: Response, next: NextFuncti
 
 export const getHealthCheck = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Placeholder for getHealthCheck logic
-        res.status(501).json({ message: 'Not Implemented: getHealthCheck' });
+        const health = await MiscService.getHealth();
+        res.json(health);
     } catch (err) {
         next(err);
     }
@@ -30,8 +30,8 @@ export const getHealthCheck = async (req: Request, res: Response, next: NextFunc
 
 export const getConfiguration = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Placeholder for getConfiguration logic
-        res.status(501).json({ message: 'Not Implemented: getConfiguration' });
+        const config = await MiscService.getConfig();
+        res.json(config);
     } catch (err) {
         next(err);
     }
@@ -39,8 +39,8 @@ export const getConfiguration = async (req: Request, res: Response, next: NextFu
 
 export const uploadFile = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Placeholder for uploadFile logic
-        res.status(501).json({ message: 'Not Implemented: uploadFile' });
+        const result = await MiscService.upload(req.body?.file || null);
+        res.json(result);
     } catch (err) {
         next(err);
     }
@@ -48,8 +48,12 @@ export const uploadFile = async (req: Request, res: Response, next: NextFunction
 
 export const sendNotification = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Placeholder for sendNotification logic
-        res.status(501).json({ message: 'Not Implemented: sendNotification' });
+        const result = await MiscService.notify({
+            to: req.body?.to,
+            subject: req.body?.subject,
+            message: req.body?.message,
+        });
+        res.json(result);
     } catch (err) {
         next(err);
     }
