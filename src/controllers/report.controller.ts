@@ -39,8 +39,8 @@ export const getInvoiceSummaries = async (req: Request, res: Response, next: Nex
 
 export const getFinancialReports = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Placeholder for getFinancialReports logic
-        res.status(501).json({ message: 'Not Implemented: getFinancialReports' });
+        const result = await ReportService.getFinancialReports(req.query as any);
+        res.json(result);
     } catch (err) {
         next(err);
     }
@@ -48,8 +48,8 @@ export const getFinancialReports = async (req: Request, res: Response, next: Nex
 
 export const getClinicalReports = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Placeholder for getClinicalReports logic
-        res.status(501).json({ message: 'Not Implemented: getClinicalReports' });
+        const result = await ReportService.getClinicalReports(req.query as any);
+        res.json(result);
     } catch (err) {
         next(err);
     }
@@ -57,8 +57,8 @@ export const getClinicalReports = async (req: Request, res: Response, next: Next
 
 export const getUserActivityReports = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Placeholder for getUserActivityReports logic
-        res.status(501).json({ message: 'Not Implemented: getUserActivityReports' });
+        const result = await ReportService.getUserActivityReports(req.query as any);
+        res.json(result);
     } catch (err) {
         next(err);
     }
@@ -66,8 +66,8 @@ export const getUserActivityReports = async (req: Request, res: Response, next: 
 
 export const getSystemPerformanceReports = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Placeholder for getSystemPerformanceReports logic
-        res.status(501).json({ message: 'Not Implemented: getSystemPerformanceReports' });
+        const result = await ReportService.getSystemPerformanceReports();
+        res.json(result);
     } catch (err) {
         next(err);
     }
@@ -75,8 +75,8 @@ export const getSystemPerformanceReports = async (req: Request, res: Response, n
 
 export const generateCustomReport = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Placeholder for generateCustomReport logic
-        res.status(501).json({ message: 'Not Implemented: generateCustomReport' });
+        const result = await ReportService.generateCustomReport(req.body);
+        res.json(result);
     } catch (err) {
         next(err);
     }
@@ -84,8 +84,8 @@ export const generateCustomReport = async (req: Request, res: Response, next: Ne
 
 export const exportReport = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Placeholder for exportReport logic (PDF/Excel)
-        res.status(501).json({ message: 'Not Implemented: exportReport' });
+        const result = await ReportService.exportReport(req.params.reportId);
+        res.json(result);
     } catch (err) {
         next(err);
     }
