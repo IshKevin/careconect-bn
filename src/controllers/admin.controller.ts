@@ -48,8 +48,8 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
 
 export const getSystemMetrics = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Placeholder for getSystemMetrics logic
-        res.status(501).json({ message: 'Not Implemented: getSystemMetrics' });
+        const metrics = await AdminService.getSystemMetrics();
+        res.json(metrics);
     } catch (err) {
         next(err);
     }
@@ -57,8 +57,8 @@ export const getSystemMetrics = async (req: Request, res: Response, next: NextFu
 
 export const updateSystemSettings = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Placeholder for updateSystemSettings logic
-        res.status(501).json({ message: 'Not Implemented: updateSystemSettings' });
+        const result = await AdminService.updateSystemSettings(req.body);
+        res.json(result);
     } catch (err) {
         next(err);
     }
@@ -66,8 +66,8 @@ export const updateSystemSettings = async (req: Request, res: Response, next: Ne
 
 export const getAuditLogs = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Placeholder for getAuditLogs logic
-        res.status(501).json({ message: 'Not Implemented: getAuditLogs' });
+        const logs = await AdminService.getAuditLogs(req.query);
+        res.json(logs);
     } catch (err) {
         next(err);
     }
@@ -75,8 +75,8 @@ export const getAuditLogs = async (req: Request, res: Response, next: NextFuncti
 
 export const triggerReportGeneration = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Placeholder for triggerReportGeneration logic
-        res.status(501).json({ message: 'Not Implemented: triggerReportGeneration' });
+        const job = await AdminService.triggerReportGeneration(req.body);
+        res.json(job);
     } catch (err) {
         next(err);
     }
