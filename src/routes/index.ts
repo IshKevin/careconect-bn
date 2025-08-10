@@ -24,7 +24,7 @@ router.use(`/api/${config.apiVersion}/public`, publicRouter);
 router.use(`/api/${config.apiVersion}/doctors`, doctorRouter);
 router.use(`/api/${config.apiVersion}/appointments`, appointmentRouter);
 router.use(`/api/${config.apiVersion}/admin`, adminRouter);
-router.use(`/api/${config.apiVersion}/schedure`, availabilityRouter);
+router.use(`/api/${config.apiVersion}/schedule`, availabilityRouter);
 router.use(`/api/${config.apiVersion}/consultation`, consultationRouter);
 router.use(`/api/${config.apiVersion}/invoice`, invoiceRouter);
 router.use(`/api/${config.apiVersion}/reports`, reportRouter);
