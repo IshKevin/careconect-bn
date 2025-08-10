@@ -152,7 +152,7 @@ export class PatientService {
     } else {
       // Create new patient profile
       const medicalRecordNumber = await this.generateMedicalRecordNumber();
-      
+
       const patientId = uuidv4();
       await db.insert(patients).values({
         patientId,
@@ -226,7 +226,7 @@ export class PatientService {
     await this.validatePatientUser(userId);
 
     const validatedData = addMedicalHistorySchema.parse(data);
-    
+
     // Get patient ID
     const patient = await db
       .select({ patientId: patients.patientId })
@@ -293,7 +293,7 @@ export class PatientService {
     await this.validatePatientUser(userId);
 
     const validatedData = addAllergySchema.parse(data);
-    
+
     const patient = await db
       .select({ patientId: patients.patientId })
       .from(patients)
@@ -347,7 +347,7 @@ export class PatientService {
     await this.validatePatientUser(userId);
 
     const validatedData = addMedicationSchema.parse(data);
-    
+
     const patient = await db
       .select({ patientId: patients.patientId })
       .from(patients)
@@ -444,7 +444,7 @@ export class PatientService {
     await this.validatePatientUser(userId);
 
     const validatedData = updatePreferencesSchema.parse(data);
-    
+
     const patient = await db
       .select({ patientId: patients.patientId })
       .from(patients)
