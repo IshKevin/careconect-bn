@@ -1,6 +1,7 @@
+import { patients } from './../db/schemas/patients';
 import { eq } from 'drizzle-orm';
 import { db } from '../config/database';
-import { users, userProfiles } from '../db/schemas';
+import { users, userProfiles, doctors, } from '../db/schemas';
 import {
   UserLogin,
   UserRegistration,
@@ -79,8 +80,14 @@ class AuthorizationError extends Error implements AppError {
   }
 }
 
+// Updated interface to include doctorId and patientId
+interface LoginResponse extends UserWithProfile {
+  doctorId?: string;
+  patientId?: string;
+}
+
 export class AuthService {
-  async login(data: UserLogin): Promise<{ accessToken: string; refreshToken: string; user: UserWithProfile }> {
+  async login(data: UserLogin): Promise<{ accessToken: string; refreshToken: string; user: LoginResponse }> {
     const { email, password } = data;
 
     // Find user by email
@@ -114,6 +121,40 @@ export class AuthService {
       .where(eq(userProfiles.userId, user[0].userId))
       .limit(1);
 
+    // Initialize response user object
+    let responseUser: LoginResponse = {
+      ...user[0],
+      profile: profile[0]
+        ? {
+          firstName: profile[0].firstName,
+          lastName: profile[0].lastName,
+        }
+        : undefined,
+    };
+
+    // Get doctorId or patientId based on user type
+    if (user[0].userType === 'doctor') {
+      const doctor = await db
+        .select({ doctorId: doctors.doctorId })
+        .from(doctors)
+        .where(eq(doctors.userId, user[0].userId))
+        .limit(1);
+      
+      if (doctor[0]) {
+        responseUser.doctorId = doctor[0].doctorId;
+      }
+    } else if (user[0].userType === 'patient') {
+      const patient = await db
+        .select({ patientId: patients.patientId })
+        .from(patients)
+        .where(eq(patients.userId, user[0].userId))
+        .limit(1);
+      
+      if (patient[0]) {
+        responseUser.patientId = patient[0].patientId;
+      }
+    }
+
     // Generate tokens
     const accessToken = this.generateAccessToken(user[0].userId, user[0].userType);
     const refreshToken = this.generateRefreshToken(user[0].userId);
@@ -121,15 +162,7 @@ export class AuthService {
     return {
       accessToken,
       refreshToken,
-      user: {
-        ...user[0],
-        profile: profile[0]
-          ? {
-            firstName: profile[0].firstName,
-            lastName: profile[0].lastName,
-          }
-          : undefined,
-      },
+      user: responseUser,
     };
   }
 
