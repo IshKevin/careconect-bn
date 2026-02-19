@@ -14,6 +14,7 @@ import invoiceRouter from './invoice.router';
 import reportRouter from './report.router';
 import searchRouter from './search.router';
 import miscRouter from './misc.router';
+import paymentRouter from './payment.router';
 
 const router = Router();
 
@@ -30,5 +31,6 @@ router.use(`/api/${config.apiVersion}/invoice`, invoiceRouter);
 router.use(`/api/${config.apiVersion}/reports`, reportRouter);
 router.use(`/api/${config.apiVersion}/search`, searchRouter);
 router.use(`/api/${config.apiVersion}/misc`, miscRouter);
+router.use(`/api/${config.apiVersion}/payments`, paymentRouter);
 
 export { router as apiRouter };

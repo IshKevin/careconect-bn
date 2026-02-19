@@ -53,8 +53,12 @@ export const deleteAvailability = async (req: Request, res: Response, next: Next
 
 export const getAvailableSlots = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Placeholder for getAvailableSlots logic
-        res.status(501).json({ message: 'Not Implemented: getAvailableSlots' });
+        const slots = await availabilityService.getAvailableSlots({
+            doctorId: (req.params.doctorId || req.query.doctorId) as string,
+            date: (req.params.date || req.query.date) as string,
+            includeBooked: req.query.includeBooked === 'true'
+        });
+        res.json(slots);
     } catch (err) {
         next(err);
     }
@@ -62,8 +66,8 @@ export const getAvailableSlots = async (req: Request, res: Response, next: NextF
 
 export const bulkUpdateAvailability = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Placeholder for bulkUpdateAvailability logic
-        res.status(501).json({ message: 'Not Implemented: bulkUpdateAvailability' });
+        const updated = await availabilityService.bulkUpdateAvailability(req.body);
+        res.json(updated);
     } catch (err) {
         next(err);
     }

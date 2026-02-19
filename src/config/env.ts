@@ -26,6 +26,23 @@ const envSchema = z.object({
 
   RWANDA_TIMEZONE: z.string().default('Africa/Kigali'),
   DEFAULT_CURRENCY: z.string().default('RWF'),
+
+  // MTN Mobile Money (https://momodeveloper.mtn.com)
+  MTN_MOMO_BASE_URL: z.string().url().default('https://sandbox.momodeveloper.mtn.com'),
+  MTN_MOMO_COLLECTION_SUBSCRIPTION_KEY: z.string().optional(),
+  MTN_MOMO_API_USER_ID: z.string().optional(),
+  MTN_MOMO_API_KEY: z.string().optional(),
+  MTN_MOMO_ENVIRONMENT: z.enum(['sandbox', 'production']).default('sandbox'),
+
+  // Airtel Money (https://developers.airtel.africa)
+  AIRTEL_MONEY_BASE_URL: z.string().url().default('https://openapi.airtel.africa'),
+  AIRTEL_MONEY_CLIENT_ID: z.string().optional(),
+  AIRTEL_MONEY_CLIENT_SECRET: z.string().optional(),
+  AIRTEL_MONEY_COUNTRY: z.string().default('RW'),
+  AIRTEL_MONEY_CURRENCY: z.string().default('RWF'),
+
+  // Payment callback
+  PAYMENT_CALLBACK_URL: z.string().url().optional(),
 });
 
 const envVars = envSchema.parse(process.env);
@@ -61,5 +78,23 @@ export const config = {
     timezone: envVars.RWANDA_TIMEZONE,
     currency: envVars.DEFAULT_CURRENCY,
     languages: ['en', 'rw', 'fr'], // Add language support for Rwanda
+  },
+
+  payment: {
+    mtnMomo: {
+      baseUrl: envVars.MTN_MOMO_BASE_URL,
+      subscriptionKey: envVars.MTN_MOMO_COLLECTION_SUBSCRIPTION_KEY,
+      apiUserId: envVars.MTN_MOMO_API_USER_ID,
+      apiKey: envVars.MTN_MOMO_API_KEY,
+      environment: envVars.MTN_MOMO_ENVIRONMENT,
+    },
+    airtelMoney: {
+      baseUrl: envVars.AIRTEL_MONEY_BASE_URL,
+      clientId: envVars.AIRTEL_MONEY_CLIENT_ID,
+      clientSecret: envVars.AIRTEL_MONEY_CLIENT_SECRET,
+      country: envVars.AIRTEL_MONEY_COUNTRY,
+      currency: envVars.AIRTEL_MONEY_CURRENCY,
+    },
+    callbackUrl: envVars.PAYMENT_CALLBACK_URL,
   },
 } as const;

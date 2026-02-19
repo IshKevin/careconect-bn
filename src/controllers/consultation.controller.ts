@@ -39,19 +39,16 @@ export const updateConsultation = async (req: Request, res: Response, next: Next
     }
 };
 
-export const completeConsultation = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        // Placeholder for completeConsultation logic
-        res.status(501).json({ message: 'Not Implemented: completeConsultation' });
-    } catch (err) {
-        next(err);
-    }
-};
+// completeConsultation removed as createConsultation handles "completing" the medical interaction by creating the record
 
 export const getPatientConsultationHistory = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Placeholder for getPatientConsultationHistory logic
-        res.status(501).json({ message: 'Not Implemented: getPatientConsultationHistory' });
+        const history = await consultationService.getPatientConsultationHistory(req.params.patientId, {
+            page: req.query.page ? Number(req.query.page) : 1,
+            limit: req.query.limit ? Number(req.query.limit) : 10,
+            includeNotes: req.query.includeNotes === 'true'
+        });
+        res.json(history);
     } catch (err) {
         next(err);
     }
@@ -59,8 +56,13 @@ export const getPatientConsultationHistory = async (req: Request, res: Response,
 
 export const getDoctorConsultations = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Placeholder for getDoctorConsultations logic
-        res.status(501).json({ message: 'Not Implemented: getDoctorConsultations' });
+        const history = await consultationService.getDoctorConsultations(req.params.doctorId, {
+            startDate: req.query.startDate as string,
+            endDate: req.query.endDate as string,
+            page: req.query.page ? Number(req.query.page) : 1,
+            limit: req.query.limit ? Number(req.query.limit) : 10
+        });
+        res.json(history);
     } catch (err) {
         next(err);
     }
@@ -68,8 +70,8 @@ export const getDoctorConsultations = async (req: Request, res: Response, next: 
 
 export const getConsultationSummary = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Placeholder for getConsultationSummary logic
-        res.status(501).json({ message: 'Not Implemented: getConsultationSummary' });
+        const summary = await consultationService.getConsultationSummary(req.params.consultation_id);
+        res.json(summary);
     } catch (err) {
         next(err);
     }

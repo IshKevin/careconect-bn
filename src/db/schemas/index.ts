@@ -1,5 +1,28 @@
 // Export all tables
 export {
+  patients,
+  patientMedicalHistory,
+  patientAllergies,
+  patientMedications,
+  patientPreferences,
+  patientFamilyLinks,
+  patientsRelations,
+  patientMedicalHistoryRelations,
+  patientAllergiesRelations,
+  patientMedicationsRelations,
+  patientPreferencesRelations,
+  patientFamilyLinksRelations,
+  bloodTypeEnum,
+  conditionTypeEnum,
+  severityEnum,
+  allergenTypeEnum,
+  medicationRouteEnum,
+  communicationMethodEnum,
+  relationshipEnum,
+  accessLevelEnum,
+} from './patients';
+
+export {
   users,
   userTypeEnum,
   accountStatusEnum,
