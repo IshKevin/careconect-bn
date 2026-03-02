@@ -17,50 +17,10 @@ const app = express();
 // Trust proxy for accurate IP addresses (Neon or other cloud proxies)
 app.set('trust proxy', 1);
 
-// CORS configuration
-const corsOptions = {
-  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
 
-    // Define allowed origins
-    const allowedOrigins = [
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'https://careconnectdemoview.netlify.app', // Replace with your actual frontend domain
-      // Add other domains as needed
-    ];
-
-    // For development, allow any localhost
-    if (config.env === 'development' && origin.includes('localhost')) {
-      return callback(null, true);
-    }
-
-    // Check if origin is in allowed list
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true, // Allow cookies to be sent
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: [
-    'Origin',
-    'X-Requested-With',
-    'Content-Type',
-    'Accept',
-    'Authorization',
-    'Cache-Control',
-    'X-Access-Token'
-  ],
-  exposedHeaders: ['set-cookie'],
-  preflightContinue: false,
-  optionsSuccessStatus: 204
-};
 
 // Apply CORS middleware
-app.use(cors(corsOptions));
+app.use(cors());
 
 // Request ID middleware (must be early in the chain)
 app.use(requestId);
