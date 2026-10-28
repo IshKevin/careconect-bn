@@ -14,4 +14,8 @@ router.get('/consultations/patient/:patientId', requireAuth, ConsultationControl
 router.get('/consultations/doctor/:doctorId', requireAuth, ConsultationController.getDoctorConsultations);
 router.get('/consultations/:consultation_id/summary', requireAuth, ConsultationController.getConsultationSummary);
 
+// Video: join window and tokens are checked on the server. Keyed by appointment,
+// because a consultation record only exists after the appointment is completed.
+router.get('/appointments/:appointmentId/join', requireAuth, ConsultationController.joinVideoCall);
+
 export default router;

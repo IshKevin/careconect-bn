@@ -15,6 +15,7 @@ import reportRouter from './report.router';
 import searchRouter from './search.router';
 import miscRouter from './misc.router';
 import paymentRouter from './payment.router';
+import webhooksRouter from './webhooks.router';
 
 const router = Router();
 
@@ -32,5 +33,6 @@ router.use(`/api/${config.apiVersion}/reports`, reportRouter);
 router.use(`/api/${config.apiVersion}/search`, searchRouter);
 router.use(`/api/${config.apiVersion}/misc`, miscRouter);
 router.use(`/api/${config.apiVersion}/payments`, paymentRouter);
+router.use(`/api/${config.apiVersion}/webhooks`, webhooksRouter);
 
 export { router as apiRouter };

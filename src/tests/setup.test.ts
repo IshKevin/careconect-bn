@@ -36,8 +36,13 @@ describe('Project Setup', () => {
     expect(config.rwanda.languages).toContain('en');
   });
 
-  test('should have PayPack configuration', () => {
-    expect(config.paypack.baseUrl).toBeDefined();
-    expect(config.paypack.environment).toMatch(/^(sandbox|production)$/);
+  test('should have Pesapal configuration', () => {
+    expect(config.pesapal.environment).toMatch(/^(sandbox|production)$/);
+    expect(config.pesapal.currency).toBe('RWF');
+  });
+
+  test('should have video configuration', () => {
+    expect(config.video.stunUrls.length).toBeGreaterThan(0);
+    expect(config.video.joinWindowBeforeMin).toBeGreaterThan(0);
   });
 });

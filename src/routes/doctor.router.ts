@@ -12,7 +12,7 @@ router.get('/public/:doctorId/profile', doctorController.getDoctorProfile.bind(d
 // Admin endpoints
 router.post('/', requireAuth, requireAdmin, doctorController.createDoctor.bind(doctorController));
 router.get('/', requireAuth, requireAdmin, doctorController.listDoctors.bind(doctorController));
-router.get('/:doctorId', requireAuth, requireAdmin, doctorController.getDoctor.bind(doctorController));
+router.get('/:doctorId', requireAuth, doctorController.getDoctor.bind(doctorController));
 router.put('/:doctorId', requireAuth, requireAdmin, doctorController.updateDoctor.bind(doctorController));
 router.put('/:doctorId/status', requireAuth, requireAdmin, doctorController.updateDoctorStatus.bind(doctorController));
 router.get('/:doctorId/stats', requireAuth, requireAdmin, doctorController.getDoctorStats.bind(doctorController));

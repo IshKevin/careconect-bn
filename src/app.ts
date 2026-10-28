@@ -20,7 +20,7 @@ app.set('trust proxy', 1);
 
 
 // Apply CORS middleware
-app.use(cors());
+app.use(cors({ origin: config.corsOrigin.split(',').map((origin) => origin.trim()) }));
 
 // Request ID middleware (must be early in the chain)
 app.use(requestId);
@@ -51,7 +51,13 @@ app.use(helmet({
 }));
 
 // Body parsing middleware
-app.use(express.json({ limit: '1mb' }));
+// Keep the raw body for webhook signature checks (Resend/Svix signs the exact bytes).
+app.use(express.json({
+  limit: '1mb',
+  verify: (req, _res, buf) => {
+    (req as typeof req & { rawBody?: Buffer }).rawBody = buf;
+  },
+}));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // Health check endpoint

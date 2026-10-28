@@ -1,0 +1,61 @@
+# Backend stack: Postgres (container), one-off migrations, and the API.
+# Run from this folder:  docker compose up --build
+# API:       http://localhost:3000/health
+# Postgres:  localhost:5432  (user careconnect, db careconnect)
+#
+# Secrets come from ./.env (copy .env.example). The database here is local, so DATABASE_URL is set
+# below and overrides any Neon URL in .env.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: careconnect
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-careconnect-dev}
+      POSTGRES_DB: careconnect
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U careconnect -d careconnect"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  # Applies pending migrations, then exits. The API starts only after it succeeds.
+  migrate:
+    build:
+      context: .
+      target: runtime
+    env_file: .env
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      DATABASE_URL: postgres://careconnect:${POSTGRES_PASSWORD:-careconnect-dev}@db:5432/careconnect
+      DATABASE_SSL: disable
+    command: ["node", "dist/db/migrate.js"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    build:
+      context: .
+      target: runtime
+    env_file: .env
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: "3000"
+      DATABASE_URL: postgres://careconnect:${POSTGRES_PASSWORD:-careconnect-dev}@db:5432/careconnect
+      DATABASE_SSL: disable
+    ports:
+      - "3000:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+volumes:
+  pgdata:

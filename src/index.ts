@@ -1,7 +1,9 @@
+import { createServer } from 'http';
 import { app } from './app';
 import { config } from './config/env';
 import { testConnection, closeConnection } from './config/database';
 import { logger } from './config/logger';
+import { attachVideoSignaling } from './realtime/video-signaling';
 
 // Server startup function
 const startServer = async (): Promise<void> => {
@@ -15,7 +17,10 @@ const startServer = async (): Promise<void> => {
     }
 
     // Start the server
-    const server = app.listen(config.port, () => {
+    const server = createServer(app);
+    attachVideoSignaling(server, config.corsOrigin.split(',').map((origin) => origin.trim()));
+
+    server.listen(config.port, () => {
       logger.info('Server started successfully', {
         port: config.port,
         environment: config.env,

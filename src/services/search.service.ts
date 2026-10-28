@@ -234,3 +234,81 @@ export const searchInvoices = async (
         pagination: { page, limit, count: filtered.length },
     };
 };
+// ─── Global search, suggestions, history ────────────────────────────────────
+
+export interface SearchRequester {
+    userId: string;
+    userType: string;
+}
+
+const pattern = (term: string) => `%${term.replace(/[%_]/g, (c) => `\\${c}`)}%`;
+
+/** Doctors by name or specialty, and invoices by number. Patients see only their own invoices. */
+export const globalSearch = async (term: string, requester: SearchRequester) => {
+    const like_ = pattern(term);
+
+    const matchedDoctors = await db
+        .select({
+            doctorId: doctors.doctorId,
+            specialty: doctors.specialty,
+            consultationFee: doctors.consultationFee,
+            firstName: userProfiles.firstName,
+            lastName: userProfiles.lastName,
+        })
+        .from(doctors)
+        .innerJoin(users, eq(users.userId, doctors.userId))
+        .leftJoin(userProfiles, eq(userProfiles.userId, users.userId))
+        .where(
+            and(
+                eq(doctors.isActive, true),
+                or(
+                    like(doctors.specialty, like_),
+                    like(userProfiles.firstName, like_),
+                    like(userProfiles.lastName, like_),
+                ),
+            ),
+        )
+        .limit(5);
+
+    const invoiceFilter =
+        requester.userType === 'patient'
+            ? and(like(invoices.invoiceNumber, like_), eq(invoices.patientId, requester.userId))
+            : like(invoices.invoiceNumber, like_);
+
+    const matchedInvoices = await db
+        .select({
+            invoiceId: invoices.invoiceId,
+            invoiceNumber: invoices.invoiceNumber,
+            totalAmount: invoices.totalAmount,
+            invoiceStatus: invoices.invoiceStatus,
+        })
+        .from(invoices)
+        .where(invoiceFilter)
+        .limit(5);
+
+    return { doctors: matchedDoctors, invoices: matchedInvoices };
+};
+
+/** Short list of specialties and doctor names that start with or contain the term. */
+export const getSearchSuggestions = async (term: string) => {
+    const like_ = pattern(term);
+
+    const specialties = await db
+        .selectDistinct({ specialty: doctors.specialty })
+        .from(doctors)
+        .where(and(eq(doctors.isActive, true), like(doctors.specialty, like_)))
+        .limit(5);
+
+    const names = await db
+        .select({ firstName: userProfiles.firstName, lastName: userProfiles.lastName })
+        .from(doctors)
+        .innerJoin(users, eq(users.userId, doctors.userId))
+        .innerJoin(userProfiles, eq(userProfiles.userId, users.userId))
+        .where(and(eq(doctors.isActive, true), or(like(userProfiles.firstName, like_), like(userProfiles.lastName, like_))))
+        .limit(5);
+
+    return {
+        specialties: specialties.map((row) => row.specialty),
+        doctors: names.map((row) => `Dr. ${row.firstName} ${row.lastName}`),
+    };
+};

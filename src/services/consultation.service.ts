@@ -10,13 +10,21 @@ import {
   PatientConsultationHistory,
   DoctorConsultationSummary,
 } from '../db/schemas/consultations';
-import { NotFoundError, ConflictError, ValidationError } from '../utils/errors';
+import { NotFoundError, ConflictError, ValidationError, AuthorizationError } from '../utils/errors';
+
+// Controllers pass the signed-in user's id; appointments store the doctor record id.
+const resolveDoctorId = async (userId: string): Promise<string> => {
+  const [doctor] = await db.select({ doctorId: doctors.doctorId }).from(doctors).where(eq(doctors.userId, userId)).limit(1);
+  if (!doctor) throw new AuthorizationError('Only doctors can perform this action');
+  return doctor.doctorId;
+};
 import { v4 as uuidv4 } from 'uuid';
 
 export class ConsultationService {
   // Create consultation (doctor only after appointment)
-  async createConsultation(doctorId: string, data: CreateConsultationRequest): Promise<ConsultationWithDetails> {
+  async createConsultation(userId: string, data: CreateConsultationRequest): Promise<ConsultationWithDetails> {
     const { appointmentId, notes } = data;
+    const doctorId = await resolveDoctorId(userId);
 
     // Verify appointment exists and is completed
     const appointment = await db
@@ -268,7 +276,8 @@ export class ConsultationService {
   }
 
   // Update consultation notes (doctor only)
-  async updateConsultation(consultationId: string, doctorId: string, data: UpdateConsultation): Promise<ConsultationWithDetails> {
+  async updateConsultation(consultationId: string, userId: string, data: UpdateConsultation): Promise<ConsultationWithDetails> {
+    const doctorId = await resolveDoctorId(userId);
     const consultation = await db
       .select()
       .from(consultations)

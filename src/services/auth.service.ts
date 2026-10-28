@@ -1,3 +1,4 @@
+import { withoutPassword } from '../utils/sanitize';
 import { patients } from './../db/schemas/patients';
 import { eq } from 'drizzle-orm';
 import { db } from '../config/database';
@@ -13,6 +14,7 @@ import {
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 import { config } from '../config/env';
+import { emailService } from './email.service';
 import { v4 as uuidv4 } from 'uuid';
 
 // Define the AppError interface (moved from errors.ts to align with controller)
@@ -123,7 +125,7 @@ export class AuthService {
 
     // Initialize response user object
     let responseUser: LoginResponse = {
-      ...user[0],
+      ...withoutPassword(user[0]),
       profile: profile[0]
         ? {
           firstName: profile[0].firstName,
@@ -219,7 +221,7 @@ export class AuthService {
       .limit(1);
 
     return {
-      ...user[0],
+      ...withoutPassword(user[0]),
       profile: {
         firstName: profile[0].firstName,
         lastName: profile[0].lastName,
@@ -266,9 +268,15 @@ export class AuthService {
       return; // Silently fail to prevent email enumeration
     }
 
-    // Generate reset token and send email (implement email service integration)
     const resetToken = this.generateResetToken(user[0].userId);
-    // TODO: Implement email sending with reset token
+    const link = `${config.frontendUrl}/reset-password?token=${encodeURIComponent(resetToken)}`;
+
+    // Email failures are logged inside the service and must not reveal whether the account exists.
+    await emailService.sendTemplate({
+      to: user[0].email,
+      template: 'password-reset',
+      data: { link },
+    });
   }
 
   async resetPassword(data: ResetPasswordConfirm): Promise<void> {

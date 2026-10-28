@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ConsultationService } from '../services/consultation.service';
+import { videoService } from '../services/video.service';
 
 const consultationService = new ConsultationService();
 
@@ -72,6 +73,15 @@ export const getConsultationSummary = async (req: Request, res: Response, next: 
     try {
         const summary = await consultationService.getConsultationSummary(req.params.consultation_id);
         res.json(summary);
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const joinVideoCall = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const joined = await videoService.joinConsultation(req.params.appointmentId, req.user);
+        res.json({ success: true, data: joined, requestId: req.requestId });
     } catch (err) {
         next(err);
     }

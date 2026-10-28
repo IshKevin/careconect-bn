@@ -7,11 +7,15 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().transform(Number).default('3000'),
   API_VERSION: z.string().default('v1'),
+  FRONTEND_URL: z.string().url().default('http://localhost:3001'),
+  CORS_ORIGIN: z.string().default('http://localhost:3001'),
 
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   DB_MAX_CONNECTIONS: z.string().transform(Number).default('20'),
   DB_IDLE_TIMEOUT: z.string().transform(Number).default('20'),
   DB_CONNECT_TIMEOUT: z.string().transform(Number).default('10'),
+  // 'require' for Neon or any hosted Postgres; 'disable' for the local Docker Postgres container.
+  DATABASE_SSL: z.enum(['require', 'prefer', 'disable']).default('require'),
 
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
   JWT_REFRESH_SECRET: z.string().min(32, 'JWT_REFRESH_SECRET must be at least 32 characters'),
@@ -27,33 +31,62 @@ const envSchema = z.object({
   RWANDA_TIMEZONE: z.string().default('Africa/Kigali'),
   DEFAULT_CURRENCY: z.string().default('RWF'),
 
-  // MTN Mobile Money (https://momodeveloper.mtn.com)
-  MTN_MOMO_BASE_URL: z.string().url().default('https://sandbox.momodeveloper.mtn.com'),
-  MTN_MOMO_COLLECTION_SUBSCRIPTION_KEY: z.string().optional(),
-  MTN_MOMO_API_USER_ID: z.string().optional(),
-  MTN_MOMO_API_KEY: z.string().optional(),
-  MTN_MOMO_ENVIRONMENT: z.enum(['sandbox', 'production']).default('sandbox'),
+  // Pesapal (https://developer.pesapal.com). Sandbox and production use different hosts.
+  PESAPAL_ENVIRONMENT: z.enum(['sandbox', 'production']).default('sandbox'),
+  PESAPAL_CONSUMER_KEY: z.string().optional(),
+  PESAPAL_CONSUMER_SECRET: z.string().optional(),
+  PESAPAL_IPN_ID: z.string().optional(),
+  PESAPAL_IPN_URL: z.string().url().optional(),
+  PESAPAL_CALLBACK_URL: z.string().url().optional(),
 
-  // Airtel Money (https://developers.airtel.africa)
-  AIRTEL_MONEY_BASE_URL: z.string().url().default('https://openapi.airtel.africa'),
-  AIRTEL_MONEY_CLIENT_ID: z.string().optional(),
-  AIRTEL_MONEY_CLIENT_SECRET: z.string().optional(),
-  AIRTEL_MONEY_COUNTRY: z.string().default('RW'),
-  AIRTEL_MONEY_CURRENCY: z.string().default('RWF'),
+  // Resend (https://resend.com)
+  RESEND_API_KEY: z.string().optional(),
+  RESEND_FROM_ADDRESS: z.string().default('CareConnect <no-reply@careconnect.rw>'),
+  RESEND_REPLY_TO: z.string().optional(),
+  RESEND_WEBHOOK_SECRET: z.string().optional(),
 
-  // Payment callback
-  PAYMENT_CALLBACK_URL: z.string().url().optional(),
+  // Internal video calls: WebRTC media between browsers, signalling on this server,
+  // and a self-hosted TURN relay (coturn) for networks that block direct connections.
+  VIDEO_STUN_URLS: z.string().default('stun:coturn:3478'),
+  VIDEO_TURN_URLS: z.string().default('turn:coturn:3478?transport=udp'),
+  VIDEO_TURN_SECRET: z.string().min(32, 'VIDEO_TURN_SECRET must be at least 32 characters').optional(),
+  VIDEO_JOIN_WINDOW_BEFORE_MIN: z.string().transform(Number).default('15'),
+  VIDEO_JOIN_WINDOW_AFTER_MIN: z.string().transform(Number).default('30'),
 });
 
-const envVars = envSchema.parse(process.env);
+const parsed = envSchema.parse(process.env);
+
+// Production must not start with missing provider secrets (OPS-01).
+const requiredInProduction: Array<keyof typeof parsed> = [
+  'PESAPAL_CONSUMER_KEY',
+  'PESAPAL_CONSUMER_SECRET',
+  'PESAPAL_IPN_ID',
+  'PESAPAL_IPN_URL',
+  'PESAPAL_CALLBACK_URL',
+  'RESEND_API_KEY',
+  'VIDEO_TURN_SECRET',
+];
+
+if (parsed.NODE_ENV === 'production') {
+  const missing = requiredInProduction.filter((key) => !parsed[key]);
+  if (missing.length > 0) {
+    throw new Error(`Missing required production environment variables: ${missing.join(', ')}`);
+  }
+}
+
+const envVars = parsed;
 
 export const config = {
   env: envVars.NODE_ENV,
   port: envVars.PORT,
   apiVersion: envVars.API_VERSION,
+  frontendUrl: envVars.FRONTEND_URL,
+  corsOrigin: envVars.CORS_ORIGIN,
 
   database: {
     url: envVars.DATABASE_URL,
+    // postgres-js takes `false` (not "disable") to turn SSL off.
+    ssl: envVars.DATABASE_SSL === 'disable' ? false : envVars.DATABASE_SSL,
     maxConnections: envVars.DB_MAX_CONNECTIONS,
     idleTimeout: envVars.DB_IDLE_TIMEOUT,
     connectTimeout: envVars.DB_CONNECT_TIMEOUT,
@@ -77,24 +110,31 @@ export const config = {
   rwanda: {
     timezone: envVars.RWANDA_TIMEZONE,
     currency: envVars.DEFAULT_CURRENCY,
-    languages: ['en', 'rw', 'fr'], // Add language support for Rwanda
+    languages: ['en', 'rw', 'fr'],
   },
 
-  payment: {
-    mtnMomo: {
-      baseUrl: envVars.MTN_MOMO_BASE_URL,
-      subscriptionKey: envVars.MTN_MOMO_COLLECTION_SUBSCRIPTION_KEY,
-      apiUserId: envVars.MTN_MOMO_API_USER_ID,
-      apiKey: envVars.MTN_MOMO_API_KEY,
-      environment: envVars.MTN_MOMO_ENVIRONMENT,
-    },
-    airtelMoney: {
-      baseUrl: envVars.AIRTEL_MONEY_BASE_URL,
-      clientId: envVars.AIRTEL_MONEY_CLIENT_ID,
-      clientSecret: envVars.AIRTEL_MONEY_CLIENT_SECRET,
-      country: envVars.AIRTEL_MONEY_COUNTRY,
-      currency: envVars.AIRTEL_MONEY_CURRENCY,
-    },
-    callbackUrl: envVars.PAYMENT_CALLBACK_URL,
+  pesapal: {
+    environment: envVars.PESAPAL_ENVIRONMENT,
+    consumerKey: envVars.PESAPAL_CONSUMER_KEY,
+    consumerSecret: envVars.PESAPAL_CONSUMER_SECRET,
+    ipnId: envVars.PESAPAL_IPN_ID,
+    ipnUrl: envVars.PESAPAL_IPN_URL,
+    callbackUrl: envVars.PESAPAL_CALLBACK_URL,
+    currency: envVars.DEFAULT_CURRENCY,
+  },
+
+  email: {
+    resendApiKey: envVars.RESEND_API_KEY,
+    fromAddress: envVars.RESEND_FROM_ADDRESS,
+    replyTo: envVars.RESEND_REPLY_TO,
+    webhookSecret: envVars.RESEND_WEBHOOK_SECRET,
+  },
+
+  video: {
+    stunUrls: envVars.VIDEO_STUN_URLS.split(',').map((url) => url.trim()).filter(Boolean),
+    turnUrls: envVars.VIDEO_TURN_URLS.split(',').map((url) => url.trim()).filter(Boolean),
+    turnSecret: envVars.VIDEO_TURN_SECRET,
+    joinWindowBeforeMin: envVars.VIDEO_JOIN_WINDOW_BEFORE_MIN,
+    joinWindowAfterMin: envVars.VIDEO_JOIN_WINDOW_AFTER_MIN,
   },
 } as const;

@@ -4,12 +4,12 @@ import { requireAuth } from '../middleware/authMiddleware';
 
 const router = Router();
 
-router.get('/search/doctors', requireAuth, SearchController.searchDoctors);
-router.get('/search/appointments', requireAuth, SearchController.searchAppointments);
-router.get('/search/invoices', requireAuth, SearchController.searchInvoices);
+router.get('/doctors', requireAuth, SearchController.searchDoctors);
+router.get('/appointments', requireAuth, SearchController.searchAppointments);
+router.get('/invoices', requireAuth, SearchController.searchInvoices);
 
-router.get('/search/global', requireAuth, SearchController.globalSearch);
-router.get('/search/suggestions', requireAuth, SearchController.getSearchSuggestions);
-router.get('/search/history', requireAuth, SearchController.getSearchHistory);
+router.get('/global', requireAuth, SearchController.globalSearch);
+router.get('/suggestions', requireAuth, SearchController.getSearchSuggestions);
+router.get('/history', requireAuth, SearchController.getSearchHistory);
 
 export default router;

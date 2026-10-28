@@ -12,7 +12,7 @@ import {
   GenerateInvoice,
   OverDueInvoices,
 } from '../db/schemas/invoices';
-import { NotFoundError, ConflictError, ValidationError } from '../utils/errors';
+import { NotFoundError, ConflictError, ValidationError, AuthorizationError } from '../utils/errors';
 import { v4 as uuidv4 } from 'uuid';
 
 export class InvoiceService {
@@ -24,7 +24,7 @@ export class InvoiceService {
   }
 
   // Create invoice from consultation
-  async createInvoice(data: GenerateInvoice): Promise<InvoiceWithDetails> {
+  async createInvoice(data: GenerateInvoice, requester?: { userId: string; userType: string }): Promise<InvoiceWithDetails> {
     const { consultationId, customAmount, additionalCharges, notes } = data;
 
     // Verify consultation exists
@@ -42,6 +42,13 @@ export class InvoiceService {
 
     if (!consultation[0]) {
       throw new NotFoundError('Consultation');
+    }
+
+    if (requester?.userType === 'doctor') {
+      const [self] = await db.select({ doctorId: doctors.doctorId }).from(doctors).where(eq(doctors.userId, requester.userId)).limit(1);
+      if (!self || self.doctorId !== consultation[0].doctorId) {
+        throw new AuthorizationError('You can only invoice your own consultations');
+      }
     }
 
     // Check if invoice already exists for this consultation

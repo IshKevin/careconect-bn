@@ -1,20 +1,42 @@
+import { generateInvoiceSchema } from '../db/schemas/invoices';
 import { Request, Response, NextFunction } from 'express';
 import { InvoiceService } from '../services/invoice.service';
+import { AuthorizationError } from '../utils/errors';
+import { renderInvoicePdf } from '../services/invoice-pdf.service';
 
 const invoiceService = new InvoiceService();
 
 export const createInvoice = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const created = await invoiceService.createInvoice(req.body);
+        const parsed = generateInvoiceSchema.safeParse(req.body);
+        if (!parsed.success) {
+            return res.status(400).json({
+                success: false,
+                errors: parsed.error.errors.map((e) => ({ field: e.path.join('.'), message: e.message, code: e.code })),
+                requestId: req.requestId,
+            });
+        }
+        const created = await invoiceService.createInvoice(parsed.data, req.user);
         res.status(201).json({ success: true, data: created, requestId: req.requestId });
     } catch (err) {
         next(err);
     }
 };
 
+// A patient may see only their own invoices. Staff see all.
+const assertCanViewInvoice = (req: Request, patientId: string) => {
+    if (req.user?.userType === 'patient' && req.user.userId !== patientId) {
+        throw new AuthorizationError('You can only view your own invoices');
+    }
+};
+
 export const listInvoices = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const result = await invoiceService.listInvoices(req.query as any);
+        const filters = { ...(req.query as any) };
+        if (req.user?.userType === 'patient') {
+            filters.patientId = req.user.userId;
+        }
+        const result = await invoiceService.listInvoices(filters);
         res.json({ success: true, data: result.invoices, pagination: result.pagination, requestId: req.requestId });
     } catch (err) {
         next(err);
@@ -24,6 +46,7 @@ export const listInvoices = async (req: Request, res: Response, next: NextFuncti
 export const getInvoice = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const invoice = await invoiceService.getInvoice(req.params.invoice_id);
+        assertCanViewInvoice(req, invoice.patientId);
         res.json({ success: true, data: invoice, requestId: req.requestId });
     } catch (err) {
         next(err);
@@ -105,17 +128,15 @@ export const getOverdueInvoices = async (req: Request, res: Response, next: Next
 
 export const downloadInvoice = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const owner = await invoiceService.getInvoice(req.params.invoice_id);
+        assertCanViewInvoice(req, owner.patientId);
         const invoice = await invoiceService.getInvoiceSummary(req.params.invoice_id);
+        const pdf = await renderInvoicePdf(invoice);
 
-        // Return a structured JSON summary – PDF generation can be plugged in later
-        res.json({
-            success: true,
-            data: {
-                ...invoice,
-                downloadNote: 'PDF generation can be added by integrating a PDF library (e.g., PDFKit or Puppeteer).',
-            },
-            requestId: req.requestId,
-        });
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${invoice.invoiceNumber}.pdf"`);
+        res.setHeader('Content-Length', pdf.length.toString());
+        res.send(pdf);
     } catch (err) {
         next(err);
     }

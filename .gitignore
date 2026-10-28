@@ -150,16 +150,21 @@ docs/build/
 *.crt
 *.csr
 
-# Docker
+# Docker (the project's own Docker files are tracked; local overrides are not)
 .dockerignore
+!.dockerignore
 Dockerfile
+!Dockerfile
 docker-compose.yml
+!docker-compose.yml
 docker-compose.override.yml
 
 # Kubernetes
 k8s/
 *.yaml
 *.yml
+!docker-compose.yml
+!.github/**/*.yml
 
 # Terraform
 *.tfstate

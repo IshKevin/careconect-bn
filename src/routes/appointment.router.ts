@@ -20,9 +20,9 @@ router.put('/:appointmentId/status', requireAuth, requireRole(['doctor']), appoi
 router.get('/availability/:doctorId/:date', appointmentController.getAvailableTimeSlots.bind(appointmentController));
 
 // Admin endpoints
-router.get('/', requireAdmin, appointmentController.listAppointments.bind(appointmentController));
-router.get('/:appointmentId', requireAdmin, appointmentController.getAppointment.bind(appointmentController));
-router.put('/:appointmentId', requireAdmin, appointmentController.updateAppointment.bind(appointmentController));
-router.delete('/:appointmentId', requireAdmin, appointmentController.deleteAppointment.bind(appointmentController));
+router.get('/', requireAuth, requireAdmin, appointmentController.listAppointments.bind(appointmentController));
+router.get('/:appointmentId', requireAuth, requireAdmin, appointmentController.getAppointment.bind(appointmentController));
+router.put('/:appointmentId', requireAuth, requireAdmin, appointmentController.updateAppointment.bind(appointmentController));
+router.delete('/:appointmentId', requireAuth, requireAdmin, appointmentController.deleteAppointment.bind(appointmentController));
 
 export default router;

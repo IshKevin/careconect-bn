@@ -99,7 +99,20 @@ export {
   paymentRecordSchema,
 } from './invoices';
 
+export {
+  paymentTransactions,
+  paymentTransactionsRelations,
+  paymentProviderEnum,
+  paymentTransactionStatusEnum,
+} from './payment-transactions';
+
 // Export all types
+export type {
+  PaymentTransaction,
+  NewPaymentTransaction,
+  PaymentTransactionStatus,
+} from './payment-transactions';
+
 export type {
   User,
   NewUser,
@@ -175,3 +188,5 @@ export const timestampSchema = {
   createdAt: { type: 'string', format: 'date-time' },
   updatedAt: { type: 'string', format: 'date-time' },
 } as const;
+export { emailSuppressions, emailSuppressionReasonEnum } from './email-suppressions';
+export type { EmailSuppression } from './email-suppressions';

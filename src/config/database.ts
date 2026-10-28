@@ -9,13 +9,13 @@ if (!connectionString) {
   throw new Error('DATABASE_URL is required');
 }
 
-// Create postgres client with Neon-optimized settings
+// Postgres client. SSL is set by DATABASE_SSL: 'require' for Neon, 'disable' for the local container.
 const client = postgres(connectionString, {
-  max: 20, // Maximum number of connections
-  idle_timeout: 20, // Close idle connections after 20 seconds
-  connect_timeout: 10, // Connection timeout in seconds
-  ssl: 'require', // Neon requires SSL
-  prepare: false, // Disable prepared statements for better compatibility with Neon
+  max: config.database.maxConnections,
+  idle_timeout: config.database.idleTimeout,
+  connect_timeout: config.database.connectTimeout,
+  ssl: config.database.ssl,
+  prepare: false, // Disable prepared statements for better compatibility with pooled proxies
 });
 
 // Create drizzle instance

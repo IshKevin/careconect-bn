@@ -1,3 +1,4 @@
+import { withoutPassword } from '../utils/sanitize';
 import { eq, and, like, or, sql } from 'drizzle-orm';
 import { db } from '../config/database';
 import { users } from '../db/schemas/users';
@@ -56,7 +57,7 @@ export class UserService {
       .limit(1);
 
     return {
-      ...user[0],
+      ...withoutPassword(user[0]),
       profile: profile[0]
         ? {
             firstName: profile[0].firstName,
