@@ -130,10 +130,22 @@ Environment notes: Postgres and the API run in Docker. The Windows Node install 
 
 ### Known gaps found during verification
 
-- **Migrations are incomplete.** The repository has migrations `0000` (payment transactions), `0001` (email suppressions), `0002` (sponsor links) and `0003` (facilities, refunds, reconciliation). The base tables (users, doctors, patients, appointments, consultations, invoices) were created by `db:push`, not by a migration. A fresh deployment that runs `db:migrate` would fail. **A baseline migration must be generated before handover.** This also affects the deployment and backup plan.
+### Gaps found and fixed in the readiness pass
+
+- **Migrations on a fresh database: fixed.** `0000_payment_transactions.sql` creates the base tables, so `db:migrate` on an empty Postgres 16 applies all four migrations (19 tables). This was re-checked through the production image.
+- **Schema snapshot: fixed.** `meta/0003_snapshot.json` was missing, so `drizzle-kit generate` would have re-created the sponsor, facility and refund tables. `drizzle-kit generate` now reports no schema changes.
+- **Doctor invoice updates: already fixed.** `updateInvoice` checks that the doctor issued the invoice. The earlier note was out of date.
+- **coturn service: added** to `docker-compose.yml` with `--use-auth-secret`, so the API's `VIDEO_TURN_SECRET` credentials work. Set `VIDEO_PUBLIC_IP` in production.
+- **Pesapal IPN registration: added.** `npm run pesapal:register-ipn` prints the `PESAPAL_IPN_ID` value to paste into `.env`.
+- **Key readiness check: added.** `npm run check:integrations` reports database, TURN, Pesapal and Resend status. With a key set it makes one live call (Pesapal token, Resend domain list). Run it after adding keys.
+- **`.env.example` completed** with the missing keys and secret generation commands. The frontend has a `.env.example` (`NEXT_PUBLIC_API_BASE_URL`).
+
+### Still open
+
+- **Existing dev database built with `db:push`.** The `db` volume on the developer's machine already has the tables, so `db:migrate` fails on `CREATE TYPE "appointment_status"`. Fresh databases are unaffected. Before the team relies on migrations, either reset that dev volume (`docker compose down -v`, which deletes its data) or mark migrations 0000 to 0003 as applied in `drizzle.__drizzle_migrations`. This needs the owner's decision because the volume may hold test data.
 - **Pesapal refund request fields** are unverified (section 4a).
-- **Pesapal sandbox initiation** returns "not fully configured" without `PESAPAL_IPN_ID` and `PESAPAL_CALLBACK_URL`. Expected in this environment.
-- **Doctor invoice updates** (`PATCH /invoice/invoices/:id`) are allowed for any doctor, not only the issuing doctor. Needs the same owner check.
+- **Pesapal sandbox initiation** returns "not fully configured" until `PESAPAL_IPN_ID` is set (run `npm run pesapal:register-ipn`).
+- **Live provider calls not yet run with real keys.** The check was run with fake keys: Pesapal and Resend both reached their live APIs and reported the rejection clearly.
 
 ## 8. Sign-off checklist (founder point 8)
 

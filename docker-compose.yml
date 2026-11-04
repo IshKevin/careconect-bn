@@ -57,5 +57,26 @@ services:
         condition: service_completed_successfully
     restart: unless-stopped
 
+  # TURN/STUN relay for video consultations, used when a direct browser-to-browser connection is blocked.
+  # It accepts only time-limited credentials made by the API from VIDEO_TURN_SECRET (see src/services/video.service.ts).
+  # In production set VIDEO_PUBLIC_IP to the server's public IP and open 3478 (UDP and TCP) and 49160-49200 (UDP).
+  coturn:
+    image: coturn/coturn:4.6.2
+    environment:
+      VIDEO_TURN_SECRET: ${VIDEO_TURN_SECRET:?Set VIDEO_TURN_SECRET in .env (32+ random characters)}
+      VIDEO_PUBLIC_IP: ${VIDEO_PUBLIC_IP:-}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        exec turnserver -n --log-file=stdout --fingerprint --no-cli --realm=isanomed
+        --use-auth-secret --static-auth-secret="$$VIDEO_TURN_SECRET"
+        --listening-port=3478 --min-port=49160 --max-port=49200
+        $${VIDEO_PUBLIC_IP:+--external-ip=$$VIDEO_PUBLIC_IP}
+    ports:
+      - "3478:3478/udp"
+      - "3478:3478/tcp"
+      - "49160-49200:49160-49200/udp"
+    restart: unless-stopped
+
 volumes:
   pgdata:
