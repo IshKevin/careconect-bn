@@ -7,7 +7,7 @@ import { users } from './users';
 import { doctors } from './doctors';
 
 // Enums
-export const invoiceStatusEnum = pgEnum('invoice_status', ['pending', 'paid', 'cancelled']);
+export const invoiceStatusEnum = pgEnum('invoice_status', ['pending', 'paid', 'cancelled', 'refunded']);
 
 // Invoices table
 export const invoices = pgTable('invoices', {
@@ -54,7 +54,7 @@ export const insertInvoiceSchema = z.object({
   doctorId: z.string().uuid('Invalid doctor ID format'),
   invoiceNumber: z.string().min(1, 'Invoice number is required').max(20, 'Invoice number too long'),
   totalAmount: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Invalid amount format').default('0.00'),
-  invoiceStatus: z.enum(['pending', 'paid', 'cancelled']).default('pending'),
+  invoiceStatus: z.enum(['pending', 'paid', 'cancelled', 'refunded']).default('pending'),
   invoiceDate: z.string().regex(dateRegex, 'Date must be in YYYY-MM-DD format').optional(),
   paidAt: z.date().nullable().optional(),
   createdAt: z.date().optional(),
@@ -64,7 +64,7 @@ export const insertInvoiceSchema = z.object({
 // Update schema
 export const updateInvoiceSchema = z.object({
   totalAmount: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Invalid amount format').optional(),
-  invoiceStatus: z.enum(['pending', 'paid', 'cancelled']).optional(),
+  invoiceStatus: z.enum(['pending', 'paid', 'cancelled', 'refunded']).optional(),
   invoiceDate: z.string().regex(dateRegex, 'Date must be in YYYY-MM-DD format').optional(),
   paidAt: z.date().nullable().optional(),
 });
@@ -77,7 +77,7 @@ export const invoiceWithDetailsSchema = z.object({
   doctorId: z.string().uuid(),
   invoiceNumber: z.string(),
   totalAmount: z.string(),
-  invoiceStatus: z.enum(['pending', 'paid', 'cancelled']),
+  invoiceStatus: z.enum(['pending', 'paid', 'cancelled', 'refunded']),
   invoiceDate: z.string(),
   paidAt: z.date().nullable(),
   createdAt: z.date(),
@@ -120,7 +120,7 @@ export const createInvoiceSchema = z.object({
 
 // Update invoice status schema
 export const updateInvoiceStatusSchema = z.object({
-  invoiceStatus: z.enum(['pending', 'paid', 'cancelled']),
+  invoiceStatus: z.enum(['pending', 'paid', 'cancelled', 'refunded']),
   paidAt: z.date().nullable().optional(),
 });
 
@@ -128,13 +128,13 @@ export const updateInvoiceStatusSchema = z.object({
 export const invoiceFiltersSchema = z.object({
   patientId: z.string().uuid().optional(),
   doctorId: z.string().uuid().optional(),
-  invoiceStatus: z.enum(['pending', 'paid', 'cancelled']).optional(),
+  invoiceStatus: z.enum(['pending', 'paid', 'cancelled', 'refunded']).optional(),
   startDate: z.string().regex(dateRegex).optional(),
   endDate: z.string().regex(dateRegex).optional(),
   minAmount: z.number().positive().optional(),
   maxAmount: z.number().positive().optional(),
-  page: z.number().int().min(1).default(1),
-  limit: z.number().int().min(1).max(100).default(10),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
 });
 
 // Invoice summary for reports
@@ -144,7 +144,7 @@ export const invoiceSummarySchema = z.object({
   patientName: z.string(),
   doctorName: z.string(),
   totalAmount: z.string(),
-  invoiceStatus: z.enum(['pending', 'paid', 'cancelled']),
+  invoiceStatus: z.enum(['pending', 'paid', 'cancelled', 'refunded']),
   invoiceDate: z.string(),
   paidAt: z.date().nullable(),
 });
@@ -177,14 +177,14 @@ export const invoiceReportFiltersSchema = z.object({
   startDate: z.string().regex(dateRegex, 'Start date must be in YYYY-MM-DD format'),
   endDate: z.string().regex(dateRegex, 'End date must be in YYYY-MM-DD format'),
   doctorId: z.string().uuid().optional(),
-  invoiceStatus: z.enum(['pending', 'paid', 'cancelled']).optional(),
+  invoiceStatus: z.enum(['pending', 'paid', 'cancelled', 'refunded']).optional(),
   groupBy: z.enum(['day', 'week', 'month']).default('day'),
 });
 
 export const overDueInvoicesSchema = z.object({
   daysOverdue: z.number().int().min(1).default(30),
-  page: z.number().int().min(1).default(1),
-  limit: z.number().int().min(1).max(100).default(10),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
 });
 
 // Invoice generation schema

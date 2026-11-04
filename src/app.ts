@@ -84,7 +84,7 @@ app.get('/health', async (_req, res) => {
 // Root endpoint
 app.get('/', (req, res) => {
   res.json({
-    message: 'CareConnect Rwanda Healthcare Management System API',
+    message: 'IsanoMed Healthcare Management System API',
     version: config.apiVersion,
     environment: config.env,
     health: `${req.protocol}://${req.get('host')}/health`,

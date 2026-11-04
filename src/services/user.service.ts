@@ -508,7 +508,7 @@ export class UserService {
   }
 
   // Get user by user type
-  async getUsersByType(userType: 'patient' | 'doctor' | 'admin' | 'super_admin', filters?: Partial<UserFilters>) {
+  async getUsersByType(userType: 'patient' | 'doctor' | 'admin' | 'super_admin' | 'sponsor', filters?: Partial<UserFilters>) {
     return this.searchUsers({
       userType,
       page: filters?.page || 1,

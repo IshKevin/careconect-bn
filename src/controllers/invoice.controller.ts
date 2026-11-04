@@ -2,6 +2,8 @@ import { generateInvoiceSchema } from '../db/schemas/invoices';
 import { Request, Response, NextFunction } from 'express';
 import { InvoiceService } from '../services/invoice.service';
 import { AuthorizationError } from '../utils/errors';
+import { assertCanActForPatient, assertCanViewInvoice, findInvoiceAccess, getDoctorIdForUser } from '../services/access.service';
+import { NotFoundError } from '../utils/errors';
 import { renderInvoicePdf } from '../services/invoice-pdf.service';
 
 const invoiceService = new InvoiceService();
@@ -23,18 +25,21 @@ export const createInvoice = async (req: Request, res: Response, next: NextFunct
     }
 };
 
-// A patient may see only their own invoices. Staff see all.
-const assertCanViewInvoice = (req: Request, patientId: string) => {
-    if (req.user?.userType === 'patient' && req.user.userId !== patientId) {
-        throw new AuthorizationError('You can only view your own invoices');
-    }
-};
 
 export const listInvoices = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const filters = { ...(req.query as any) };
-        if (req.user?.userType === 'patient') {
-            filters.patientId = req.user.userId;
+        const user = req.user!;
+        if (user.userType === 'patient' || user.userType === 'sponsor') {
+            // Patients see their own invoices; sponsors must name a patient they have an active link to.
+            const patientId = filters.patientId ?? (user.userType === 'patient' ? user.userId : undefined);
+            if (!patientId) throw new AuthorizationError('patientId is required');
+            await assertCanActForPatient(user, patientId);
+            filters.patientId = patientId;
+        } else if (user.userType === 'doctor') {
+            const doctorId = await getDoctorIdForUser(user.userId);
+            if (!doctorId) throw new AuthorizationError('No doctor profile for this account');
+            filters.doctorId = doctorId;
         }
         const result = await invoiceService.listInvoices(filters);
         res.json({ success: true, data: result.invoices, pagination: result.pagination, requestId: req.requestId });
@@ -46,7 +51,7 @@ export const listInvoices = async (req: Request, res: Response, next: NextFuncti
 export const getInvoice = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const invoice = await invoiceService.getInvoice(req.params.invoice_id);
-        assertCanViewInvoice(req, invoice.patientId);
+        await assertCanViewInvoice(req.user!, invoice);
         res.json({ success: true, data: invoice, requestId: req.requestId });
     } catch (err) {
         next(err);
@@ -55,6 +60,15 @@ export const getInvoice = async (req: Request, res: Response, next: NextFunction
 
 export const updateInvoice = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        // A doctor may edit only invoices they issued. Staff may edit any invoice.
+        const access = await findInvoiceAccess(req.params.invoice_id);
+        if (!access) throw new NotFoundError('Invoice');
+        if (req.user?.userType === 'doctor') {
+            const doctorId = await getDoctorIdForUser(req.user.userId);
+            if (!doctorId || doctorId !== access.doctorId) {
+                throw new AuthorizationError('Doctors can only edit invoices they issued');
+            }
+        }
         const updated = await invoiceService.updateInvoice(req.params.invoice_id, req.body);
         res.json({ success: true, data: updated, requestId: req.requestId });
     } catch (err) {
@@ -129,7 +143,7 @@ export const getOverdueInvoices = async (req: Request, res: Response, next: Next
 export const downloadInvoice = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const owner = await invoiceService.getInvoice(req.params.invoice_id);
-        assertCanViewInvoice(req, owner.patientId);
+        await assertCanViewInvoice(req.user!, owner);
         const invoice = await invoiceService.getInvoiceSummary(req.params.invoice_id);
         const pdf = await renderInvoicePdf(invoice);
 

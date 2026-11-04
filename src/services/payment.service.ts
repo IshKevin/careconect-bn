@@ -9,6 +9,7 @@ import type { PaymentTransactionStatus } from '../db/schemas';
 import { AuthorizationError, NotFoundError, PaymentError, ValidationError } from '../utils/errors';
 import { PesapalClient, PesapalTransactionStatus } from './pesapal.client';
 import { emailService } from './email.service';
+import { assertEmailVerified, canActForPatient } from './access.service';
 
 // ─── Validation ───────────────────────────────────────────────────────────────
 
@@ -80,8 +81,9 @@ export class PaymentService {
     const [invoice] = await db.select().from(invoices).where(eq(invoices.invoiceId, input.invoiceId)).limit(1);
     if (!invoice) throw new NotFoundError('Invoice');
 
-    if (requester.userType === 'patient' && invoice.patientId !== requester.userId) {
-      throw new AuthorizationError('You can only pay your own invoices');
+    await assertEmailVerified(requester.userId);
+    if (!(await canActForPatient(requester, invoice.patientId))) {
+      throw new AuthorizationError('You can only pay invoices for yourself or a patient you sponsor');
     }
     if (invoice.invoiceStatus === 'paid') throw new ValidationError('Invoice is already paid');
     if (invoice.invoiceStatus === 'cancelled') throw new ValidationError('Cannot pay a cancelled invoice');
@@ -112,14 +114,14 @@ export class PaymentService {
         merchantReference: txRef,
         amount,
         currency: config.pesapal.currency,
-        description: `CareConnect invoice ${invoice.invoiceNumber}`,
+        description: `IsanoMed invoice ${invoice.invoiceNumber}`,
         callbackUrl: config.pesapal.callbackUrl,
         notificationId: config.pesapal.ipnId,
         billingAddress: {
           email_address: patient.email,
           phone_number: patient.phoneNumber ?? undefined,
           first_name: patient.firstName ?? 'Patient',
-          last_name: patient.lastName ?? 'CareConnect',
+          last_name: patient.lastName ?? 'IsanoMed',
         },
       });
 
@@ -146,8 +148,8 @@ export class PaymentService {
     const [tx] = await db.select().from(paymentTransactions).where(eq(paymentTransactions.txRef, txRef)).limit(1);
     if (!tx) throw new NotFoundError('Payment');
 
-    if (requester.userType === 'patient' && tx.patientId !== requester.userId) {
-      throw new AuthorizationError('You can only view your own payments');
+    if (!(await canActForPatient(requester, tx.patientId))) {
+      throw new AuthorizationError('You can only view payments for yourself or a patient you sponsor');
     }
 
     if (tx.status === 'pending' && tx.orderTrackingId) {

@@ -38,10 +38,12 @@ const envSchema = z.object({
   PESAPAL_IPN_ID: z.string().optional(),
   PESAPAL_IPN_URL: z.string().url().optional(),
   PESAPAL_CALLBACK_URL: z.string().url().optional(),
+  PESAPAL_REFUNDS_ENABLED: z.enum(['true', 'false']).default('false'),
+  RECONCILIATION_INTERVAL_HOURS: z.coerce.number().min(0).default(24),
 
   // Resend (https://resend.com)
   RESEND_API_KEY: z.string().optional(),
-  RESEND_FROM_ADDRESS: z.string().default('CareConnect <no-reply@careconnect.rw>'),
+  RESEND_FROM_ADDRESS: z.string().default('IsanoMed <no-reply@careconnect.rw>'),
   RESEND_REPLY_TO: z.string().optional(),
   RESEND_WEBHOOK_SECRET: z.string().optional(),
 
@@ -113,6 +115,9 @@ export const config = {
     languages: ['en', 'rw', 'fr'],
   },
 
+  reconciliation: {
+    intervalHours: envVars.RECONCILIATION_INTERVAL_HOURS,
+  },
   pesapal: {
     environment: envVars.PESAPAL_ENVIRONMENT,
     consumerKey: envVars.PESAPAL_CONSUMER_KEY,
@@ -120,6 +125,7 @@ export const config = {
     ipnId: envVars.PESAPAL_IPN_ID,
     ipnUrl: envVars.PESAPAL_IPN_URL,
     callbackUrl: envVars.PESAPAL_CALLBACK_URL,
+    refundsEnabled: envVars.PESAPAL_REFUNDS_ENABLED === 'true',
     currency: envVars.DEFAULT_CURRENCY,
   },
 

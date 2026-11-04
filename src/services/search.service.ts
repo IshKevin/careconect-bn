@@ -1,4 +1,5 @@
-import { and, asc, desc, eq, gte, lte, like, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, inArray, lte, like, or, sql } from 'drizzle-orm';
+import { getActiveSponsoredPatientIds } from './access.service';
 import { db } from '../config/database';
 import {
     users,
@@ -153,9 +154,11 @@ export const searchAppointments = async (
         doctorIdForUser = mapping[0]?.doctorId ?? null;
     }
 
+    const sponsoredIds = new Set(user.userType === 'sponsor' ? await getActiveSponsoredPatientIds(user.userId) : []);
     const filtered = rows.filter((row) => {
         if (user.userType === 'patient') return row.patientId === user.userId;
         if (user.userType === 'doctor') return !!doctorIdForUser && row.doctorId === doctorIdForUser;
+        if (user.userType === 'sponsor') return sponsoredIds.has(row.patientId);
         return true;
     });
 
@@ -223,9 +226,11 @@ export const searchInvoices = async (
         doctorIdForUser = mapping[0]?.doctorId ?? null;
     }
 
+    const sponsoredIds = new Set(user.userType === 'sponsor' ? await getActiveSponsoredPatientIds(user.userId) : []);
     const filtered = rows.filter((row) => {
         if (user.userType === 'patient') return row.patientId === user.userId;
         if (user.userType === 'doctor') return !!doctorIdForUser && row.doctorId === doctorIdForUser;
+        if (user.userType === 'sponsor') return sponsoredIds.has(row.patientId);
         return true;
     });
 
@@ -244,6 +249,24 @@ export interface SearchRequester {
 const pattern = (term: string) => `%${term.replace(/[%_]/g, (c) => `\\${c}`)}%`;
 
 /** Doctors by name or specialty, and invoices by number. Patients see only their own invoices. */
+// Invoices a requester may see in global search. Null means none.
+const invoiceSearchFilter = async (requester: SearchRequester, like_: string) => {
+    if (requester.userType === 'patient') {
+        return and(like(invoices.invoiceNumber, like_), eq(invoices.patientId, requester.userId));
+    }
+    if (requester.userType === 'sponsor') {
+        const ids = await getActiveSponsoredPatientIds(requester.userId);
+        if (ids.length === 0) return null;
+        return and(like(invoices.invoiceNumber, like_), inArray(invoices.patientId, ids));
+    }
+    if (requester.userType === 'doctor') {
+        const [mapping] = await db.select({ doctorId: doctors.doctorId }).from(doctors).where(eq(doctors.userId, requester.userId)).limit(1);
+        if (!mapping) return null;
+        return and(like(invoices.invoiceNumber, like_), eq(invoices.doctorId, mapping.doctorId));
+    }
+    return like(invoices.invoiceNumber, like_);
+};
+
 export const globalSearch = async (term: string, requester: SearchRequester) => {
     const like_ = pattern(term);
 
@@ -270,10 +293,10 @@ export const globalSearch = async (term: string, requester: SearchRequester) => 
         )
         .limit(5);
 
-    const invoiceFilter =
-        requester.userType === 'patient'
-            ? and(like(invoices.invoiceNumber, like_), eq(invoices.patientId, requester.userId))
-            : like(invoices.invoiceNumber, like_);
+    const invoiceFilter = await invoiceSearchFilter(requester, like_);
+    if (invoiceFilter === null) {
+        return { doctors: matchedDoctors, invoices: [] };
+    }
 
     const matchedInvoices = await db
         .select({

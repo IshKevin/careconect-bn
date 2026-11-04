@@ -29,7 +29,7 @@
     "drizzle-orm",
     "postgresql"
   ],
-  "author": "CareConnect Rwanda",
+  "author": "IsanoMed Rwanda",
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0",

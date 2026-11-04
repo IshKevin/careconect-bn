@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { config } from '../config/env';
 import { responseHelpers } from '../utils/responseHelpers';
 import { AuthenticationError } from '../utils/errors';
+import { assertCanReadMedicalRecord } from '../services/access.service';
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.header('Authorization') || '';
@@ -55,3 +56,33 @@ export const requireAdmin = requireRole(['admin', 'super_admin']);
 export const requireSuperAdmin = requireRole(['super_admin']);
 export const requireDoctor = requireRole(['doctor', 'admin', 'super_admin']);
 export const requirePatient = requireRole(['patient', 'doctor', 'admin', 'super_admin']);
+
+// The route parameter must be the signed-in user's own id (for writes to a user's own record).
+export const requireSelfParam = (param: string = 'userId') => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return responseHelpers.unauthorized(res, 'Authentication required', req.requestId);
+    }
+
+    if (req.params[param] !== req.user.userId) {
+      return responseHelpers.forbidden(res, 'You can only change your own record', req.requestId);
+    }
+
+    next();
+  };
+};
+
+// Medical records are readable only with a care relationship, staff role, patient self, or sponsor medical consent.
+export const requireMedicalAccess = (param: string = 'userId') => {
+  return async (req: Request, _res: Response, next: NextFunction) => {
+    try {
+      if (!req.user) {
+        throw new AuthenticationError('Authentication required');
+      }
+      await assertCanReadMedicalRecord(req.user, req.params[param]);
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+};

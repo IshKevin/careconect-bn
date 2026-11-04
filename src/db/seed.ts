@@ -12,6 +12,8 @@ import { appointments, consultations, doctors, invoices, patients, userProfiles,
 
 const DOCTOR = { email: 'doctor.test@careconnect.rw', password: 'TestDoctor#2026', phone: '+250788100001', license: 'TEST-MD-0001' };
 const PATIENT = { email: 'patient.test@careconnect.rw', password: 'TestPatient#2026', phone: '+250788100002' };
+const ADMIN = { email: 'admin.test@careconnect.rw', password: 'TestAdmin#2026', phone: '+250788100003' };
+const ADMIN_TWO = { email: 'admin2.test@careconnect.rw', password: 'TestAdmin#2026', phone: '+250788100004' };
 
 // Kigali is UTC+2 year-round. Returns the local date and time as stored in the appointment row.
 const kigaliNow = (): { date: string; time: string } => {
@@ -23,7 +25,7 @@ const ensureUser = async (
   email: string,
   password: string,
   phoneNumber: string,
-  userType: 'doctor' | 'patient',
+  userType: 'doctor' | 'patient' | 'admin',
   firstName: string,
   lastName: string,
 ): Promise<string> => {
@@ -32,7 +34,7 @@ const ensureUser = async (
 
   const userId = randomUUID();
   const passwordHash = await bcrypt.hash(password, config.encryption.saltRounds);
-  await db.insert(users).values({ userId, email, phoneNumber, passwordHash, userType, accountStatus: 'active' });
+  await db.insert(users).values({ userId, email, phoneNumber, passwordHash, userType, accountStatus: 'active', emailVerified: new Date().toISOString() });
   await db.insert(userProfiles).values({ profileId: randomUUID(), userId, firstName, lastName });
   return userId;
 };
@@ -40,6 +42,8 @@ const ensureUser = async (
 const run = async (): Promise<void> => {
   const doctorUserId = await ensureUser(DOCTOR.email, DOCTOR.password, DOCTOR.phone, 'doctor', 'Test', 'Doctor');
   const patientUserId = await ensureUser(PATIENT.email, PATIENT.password, PATIENT.phone, 'patient', 'Test', 'Patient');
+  const adminUserId = await ensureUser(ADMIN.email, ADMIN.password, ADMIN.phone, 'admin', 'Test', 'Admin');
+  const adminTwoUserId = await ensureUser(ADMIN_TWO.email, ADMIN_TWO.password, ADMIN_TWO.phone, 'admin', 'Test', 'AdminTwo');
 
   const [patientRecord] = await db.select().from(patients).where(eq(patients.userId, patientUserId)).limit(1);
   if (!patientRecord) {
@@ -94,6 +98,8 @@ const run = async (): Promise<void> => {
     {
       doctor: { email: DOCTOR.email, password: DOCTOR.password, userId: doctorUserId, doctorId: doctor.doctorId },
       patient: { email: PATIENT.email, password: PATIENT.password, userId: patientUserId },
+      admin: { email: ADMIN.email, password: ADMIN.password, userId: adminUserId },
+      adminTwo: { email: ADMIN_TWO.email, password: ADMIN_TWO.password, userId: adminTwoUserId },
       appointment: { appointmentId: appointment.appointmentId, scheduledDate: date, scheduledTime: time },
       invoice: { invoiceId: invoice.invoiceId, totalAmount: invoice.totalAmount, invoiceStatus: invoice.invoiceStatus },
     },

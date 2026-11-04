@@ -16,6 +16,9 @@ import searchRouter from './search.router';
 import miscRouter from './misc.router';
 import paymentRouter from './payment.router';
 import webhooksRouter from './webhooks.router';
+import sponsorRouter from './sponsor.router';
+import providerRouter from './provider.router';
+import refundRouter from './refund.router';
 
 const router = Router();
 
@@ -34,5 +37,8 @@ router.use(`/api/${config.apiVersion}/search`, searchRouter);
 router.use(`/api/${config.apiVersion}/misc`, miscRouter);
 router.use(`/api/${config.apiVersion}/payments`, paymentRouter);
 router.use(`/api/${config.apiVersion}/webhooks`, webhooksRouter);
+router.use(`/api/${config.apiVersion}/sponsor`, sponsorRouter);
+router.use(`/api/${config.apiVersion}/provider`, providerRouter);
+router.use(`/api/${config.apiVersion}/refunds`, refundRouter);
 
 export { router as apiRouter };

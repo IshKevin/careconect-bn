@@ -146,8 +146,8 @@ export const appointmentFiltersSchema = z.object({
   appointmentStatus: z.enum(['scheduled', 'confirmed', 'in_progress', 'completed', 'cancelled', 'rescheduled', 'no_show']).optional(),
   startDate: z.string().regex(dateRegex).optional(),
   endDate: z.string().regex(dateRegex).optional(),
-  page: z.number().int().min(1).default(1),
-  limit: z.number().int().min(1).max(100).default(10),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
 });
 
 // Additional schemas for specific operations

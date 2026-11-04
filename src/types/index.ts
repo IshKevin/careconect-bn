@@ -19,7 +19,7 @@ declare module 'express' {
 }
 
 // User types
-export type UserType = 'patient' | 'doctor' | 'admin' | 'super_admin';
+export type UserType = 'patient' | 'doctor' | 'admin' | 'super_admin' | 'sponsor';
 
 export type AccountStatus = 'active' | 'inactive' | 'suspended' | 'pending_verification' | 'deactivated';
 

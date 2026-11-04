@@ -3,7 +3,7 @@ import { createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
 // Enums
-export const userTypeEnum = pgEnum('user_type', ['patient', 'doctor', 'admin', 'super_admin']);
+export const userTypeEnum = pgEnum('user_type', ['patient', 'doctor', 'admin', 'super_admin', 'sponsor']);
 export const accountStatusEnum = pgEnum('account_status', ['active', 'inactive', 'suspended', 'pending_verification']);
 
 // Users table
@@ -32,7 +32,7 @@ export const insertUserSchema = z.object({
   email: z.string().email('Invalid email format'),
   phoneNumber: z.string().regex(/^\+250\d{9}$/, 'Phone number must be in format +250XXXXXXXXX').optional(),
   passwordHash: z.string().min(60, 'Password hash must be valid BCrypt hash'),
-  userType: z.enum(['patient', 'doctor', 'admin', 'super_admin']),
+  userType: z.enum(['patient', 'doctor', 'admin', 'super_admin', 'sponsor']),
   accountStatus: z.enum(['active', 'inactive', 'suspended', 'pending_verification']).default('active'),
   emailVerified: z.string().optional(),
   phoneVerified: z.string().optional(),
@@ -66,7 +66,7 @@ export const userRegistrationSchema = z.object({
   email: z.string().email('Invalid email format'),
   phoneNumber: z.string().regex(/^\+250\d{9}$/, 'Phone number must be in format +250XXXXXXXXX'),
   password: z.string().min(8, 'Password must be at least 8 characters').max(128, 'Password too long'),
-  userType: z.enum(['patient', 'doctor']), // Only patients and doctors can register directly
+  userType: z.enum(['patient', 'doctor', 'sponsor']), // Patients, doctors and sponsors can register directly
   firstName: z.string().min(1, 'First name is required').max(100, 'First name too long'),
   lastName: z.string().min(1, 'Last name is required').max(100, 'Last name too long'),
 });
@@ -126,7 +126,7 @@ export const createUserByAdminSchema = z.object({
   email: z.string().email('Invalid email format'),
   phoneNumber: z.string().regex(/^\+250\d{9}$/, 'Phone number must be in format +250XXXXXXXXX'),
   password: z.string().min(8, 'Password must be at least 8 characters').max(128, 'Password too long'),
-  userType: z.enum(['patient', 'doctor', 'admin', 'super_admin']),
+  userType: z.enum(['patient', 'doctor', 'admin', 'super_admin', 'sponsor']),
   firstName: z.string().min(1, 'First name is required').max(100, 'First name too long'),
   lastName: z.string().min(1, 'Last name is required').max(100, 'Last name too long'),
   accountStatus: z.enum(['active', 'inactive', 'suspended', 'pending_verification']).default('active'),
@@ -139,13 +139,13 @@ export const updateUserStatusSchema = z.object({
 
 // User filters for queries
 export const userFiltersSchema = z.object({
-  userType: z.enum(['patient', 'doctor', 'admin', 'super_admin']).optional(),
+  userType: z.enum(['patient', 'doctor', 'admin', 'super_admin', 'sponsor']).optional(),
   accountStatus: z.enum(['active', 'inactive', 'suspended', 'pending_verification']).optional(),
   search: z.string().optional(), // Search by email or phone
   createdFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   createdTo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  page: z.number().int().min(1).default(1),
-  limit: z.number().int().min(1).max(100).default(10),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
 });
 
 // User with profile schema for common queries
@@ -153,7 +153,7 @@ export const userWithProfileSchema = z.object({
   userId: z.string().uuid(),
   email: z.string().email(),
   phoneNumber: z.string().nullable(),
-  userType: z.enum(['patient', 'doctor', 'admin', 'super_admin']),
+  userType: z.enum(['patient', 'doctor', 'admin', 'super_admin', 'sponsor']),
   accountStatus: z.enum(['active', 'inactive', 'suspended', 'pending_verification']),
   emailVerified: z.string().nullable(),
   phoneVerified: z.string().nullable(),
@@ -206,5 +206,5 @@ export type UserWithProfile = z.infer<typeof userWithProfileSchema>;
 export type SecurityLog = z.infer<typeof securityLogSchema>;
 
 // Enum types
-export type UserType = 'patient' | 'doctor' | 'admin' | 'super_admin';
+export type UserType = 'patient' | 'doctor' | 'admin' | 'super_admin' | 'sponsor';
 export type AccountStatus = 'active' | 'inactive' | 'suspended' | 'pending_verification';

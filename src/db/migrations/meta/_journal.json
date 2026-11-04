@@ -15,6 +15,20 @@
       "when": 1793196157929,
       "tag": "0001_email_suppressions",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793282400000,
+      "tag": "0002_sponsor_links",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793368800000,
+      "tag": "0003_facilities_refunds_reconciliation",
+      "breakpoints": true
     }
   ]
 }

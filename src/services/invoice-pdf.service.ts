@@ -18,18 +18,19 @@ const formatDate = (value: string | Date | null): string => {
 const STATUS_LABEL: Record<InvoiceSummary['invoiceStatus'], string> = {
   pending: 'Unpaid',
   paid: 'Paid',
+  refunded: 'Refunded',
   cancelled: 'Cancelled',
 };
 
 export const renderInvoicePdf = (invoice: InvoiceSummary): Promise<Buffer> =>
   new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ size: 'A4', margin: 50, info: { Title: `Invoice ${invoice.invoiceNumber}`, Author: 'CareConnect' } });
+    const doc = new PDFDocument({ size: 'A4', margin: 50, info: { Title: `Invoice ${invoice.invoiceNumber}`, Author: 'IsanoMed' } });
     const chunks: Buffer[] = [];
     doc.on('data', (chunk: Buffer) => chunks.push(chunk));
     doc.on('end', () => resolve(Buffer.concat(chunks)));
     doc.on('error', reject);
 
-    doc.fontSize(22).fillColor('#0f766e').text('CareConnect', { continued: false });
+    doc.fontSize(22).fillColor('#0f766e').text('IsanoMed', { continued: false });
     doc.fontSize(9).fillColor('#6b7280').text('Healthcare management, Rwanda');
     doc.moveDown(1.5);
 
@@ -65,7 +66,7 @@ export const renderInvoicePdf = (invoice: InvoiceSummary): Promise<Buffer> =>
 
     doc.fontSize(8).fillColor('#6b7280');
     doc.text(
-      'Pay online through the CareConnect patient portal, or at the clinic reception. Keep this invoice for your records.',
+      'Pay online through the IsanoMed patient portal, or at the clinic reception. Keep this invoice for your records.',
       50,
       740,
       { width: 495, align: 'center' },

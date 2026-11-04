@@ -103,8 +103,8 @@ export const consultationFiltersSchema = z.object({
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   searchNotes: z.string().optional(),
-  page: z.number().int().min(1).default(1),
-  limit: z.number().int().min(1).max(100).default(10),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
 });
 
 // Consultation summary for patient history
@@ -132,15 +132,15 @@ export const consultationSearchSchema = z.object({
   doctorId: z.string().uuid().optional(),
   dateFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   dateTo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  page: z.number().int().min(1).default(1),
-  limit: z.number().int().min(1).max(100).default(10),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
 });
 
 // Patient consultation history schema
 export const patientConsultationHistorySchema = z.object({
   patientId: z.string().uuid('Invalid patient ID'),
-  page: z.number().int().min(1).default(1),
-  limit: z.number().int().min(1).max(50).default(10),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(50).default(10),
   includeNotes: z.boolean().default(false),
 });
 
@@ -149,8 +149,8 @@ export const doctorConsultationSummarySchema = z.object({
   doctorId: z.string().uuid('Invalid doctor ID'),
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  page: z.number().int().min(1).default(1),
-  limit: z.number().int().min(1).max(100).default(20),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
 });
 
 // Types

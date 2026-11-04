@@ -29,40 +29,40 @@ const layout = (title: string, bodyHtml: string): string => `<!doctype html>
   <body style="font-family: Arial, Helvetica, sans-serif; color: #1f2937; line-height: 1.5;">
     <h2 style="color: #0f766e;">${escapeHtml(title)}</h2>
     ${bodyHtml}
-    <p style="color: #6b7280; font-size: 12px;">CareConnect. This is an automated message. Do not reply with health information.</p>
+    <p style="color: #6b7280; font-size: 12px;">IsanoMed. This is an automated message. Do not reply with health information.</p>
   </body>
 </html>`;
 
 export const templates: Record<EmailTemplateName, (data: Record<string, string>) => RenderedEmail> = {
   'password-reset': ({ link }) => ({
-    subject: 'Reset your CareConnect password',
+    subject: 'Reset your IsanoMed password',
     html: layout(
       'Reset your password',
       `<p>We received a request to reset your password. The link below works once and expires in 30 minutes.</p>
        <p><a href="${escapeHtml(link)}">Reset password</a></p>
        <p>If you did not ask for this, you can ignore this email.</p>`,
     ),
-    text: `Reset your CareConnect password (valid 30 minutes, single use): ${link}\nIf you did not ask for this, ignore this email.`,
+    text: `Reset your IsanoMed password (valid 30 minutes, single use): ${link}\nIf you did not ask for this, ignore this email.`,
   }),
 
   'email-verify': ({ link }) => ({
-    subject: 'Confirm your CareConnect email address',
+    subject: 'Confirm your IsanoMed email address',
     html: layout(
       'Confirm your email',
       `<p>Please confirm your email address. The link expires in 24 hours.</p>
        <p><a href="${escapeHtml(link)}">Confirm email</a></p>`,
     ),
-    text: `Confirm your CareConnect email (valid 24 hours): ${link}`,
+    text: `Confirm your IsanoMed email (valid 24 hours): ${link}`,
   }),
 
   'appointment-confirmed': ({ doctorName, date, time }) => ({
-    subject: 'Your CareConnect appointment is confirmed',
+    subject: 'Your IsanoMed appointment is confirmed',
     html: layout(
       'Appointment confirmed',
       `<p>Your appointment with ${escapeHtml(doctorName)} is confirmed for ${escapeHtml(date)} at ${escapeHtml(time)}.</p>
-       <p>Log in to CareConnect to see the details.</p>`,
+       <p>Log in to IsanoMed to see the details.</p>`,
     ),
-    text: `Your appointment with ${doctorName} is confirmed for ${date} at ${time}. Log in to CareConnect to see the details.`,
+    text: `Your appointment with ${doctorName} is confirmed for ${date} at ${time}. Log in to IsanoMed to see the details.`,
   }),
 
   'payment-receipt': ({ invoiceNumber, amount, currency, paidAt }) => ({

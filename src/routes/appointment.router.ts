@@ -7,7 +7,7 @@ const router = Router();
 const appointmentController = new AppointmentController();
 
 // Patient endpoints
-router.post('/book', requireAuth, requireRole(['patient']), appointmentController.bookAppointment.bind(appointmentController));
+router.post('/book', requireAuth, requireRole(['patient', 'sponsor']), appointmentController.bookAppointment.bind(appointmentController));
 router.get('/my-appointments', requireAuth, requireRole(['patient']), appointmentController.getMyAppointments.bind(appointmentController));
 router.put('/:appointmentId/reschedule', requireAuth, requireRole(['patient']), appointmentController.rescheduleAppointment.bind(appointmentController));
 router.put('/:appointmentId/cancel', requireAuth, requireRole(['patient']), appointmentController.cancelAppointment.bind(appointmentController));

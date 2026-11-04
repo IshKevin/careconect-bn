@@ -1,6 +1,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { UserService } from '../services/user.service';
+import { computeRoles } from '../services/access.service';
 import {
   UserFilters,
   UpdateUserProfile,
@@ -51,11 +52,12 @@ export class UserController {
       }
 
       const user = await this.userService.getMe(userId);
+      const roles = await computeRoles({ userId, userType: req.user!.userType });
 
       res.status(200).json({
         success: true,
         message: 'User profile retrieved successfully',
-        data: user,
+        data: { ...user, roles },
       });
     } catch (error) {
       next(error);

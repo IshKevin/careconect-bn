@@ -1,7 +1,7 @@
 // Type definitions for database schema enums and types
 
 // User types
-export type UserType = 'patient' | 'doctor' | 'admin' | 'super_admin';
+export type UserType = 'patient' | 'doctor' | 'admin' | 'super_admin' | 'sponsor';
 export type AccountStatus = 'active' | 'inactive' | 'suspended' | 'pending_verification';
 export type Gender = 'male' | 'female' | 'other' | 'prefer_not_to_say';
 export type AddressType = 'home' | 'work' | 'billing' | 'emergency';

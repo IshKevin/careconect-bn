@@ -49,9 +49,9 @@ export const createProfileSchema = z.object({
 
 export const profileSearchSchema = z.object({
   search: z.string().min(2, 'Search term must be at least 2 characters'),
-  userType: z.enum(['patient', 'doctor', 'admin', 'super_admin']).optional(),
-  page: z.number().int().min(1).default(1),
-  limit: z.number().int().min(1).max(100).default(10),
+  userType: z.enum(['patient', 'doctor', 'admin', 'super_admin', 'sponsor']).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
 });
 
 // Full profile with user data schema
@@ -65,7 +65,7 @@ export const fullUserProfileSchema = z.object({
   user: z.object({
     email: z.string().email(),
     phoneNumber: z.string().nullable(),
-    userType: z.enum(['patient', 'doctor', 'admin', 'super_admin']),
+    userType: z.enum(['patient', 'doctor', 'admin', 'super_admin', 'sponsor']),
     accountStatus: z.enum(['active', 'inactive', 'suspended', 'pending_verification']),
     emailVerified: z.string().nullable(),
     phoneVerified: z.string().nullable(),

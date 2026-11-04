@@ -4,6 +4,7 @@ import { config } from './config/env';
 import { testConnection, closeConnection } from './config/database';
 import { logger } from './config/logger';
 import { attachVideoSignaling } from './realtime/video-signaling';
+import { runReconciliation } from './services/reconciliation.service';
 
 // Server startup function
 const startServer = async (): Promise<void> => {
@@ -40,6 +41,14 @@ const startServer = async (): Promise<void> => {
         api: `${baseUrl}/api/${config.apiVersion}`,
       });
     });
+
+    // PAY-07: scheduled reconciliation (off when RECONCILIATION_INTERVAL_HOURS=0).
+    if (config.reconciliation.intervalHours > 0) {
+      const everyMs = config.reconciliation.intervalHours * 60 * 60 * 1000;
+      setInterval(() => {
+        runReconciliation('schedule').catch((error) => logger.error('Scheduled reconciliation failed', error));
+      }, everyMs).unref();
+    }
 
     // Graceful shutdown handlers
     const gracefulShutdown = async (signal: string): Promise<void> => {

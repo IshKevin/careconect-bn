@@ -14,6 +14,7 @@ import { NotFoundError, ConflictError, ValidationError } from '../utils/errors';
 import * as bcrypt from 'bcrypt';
 import { config } from '../config/env';
 import { v4 as uuidv4 } from 'uuid';
+import { doctorStats } from './dashboard.service';
 
 // Define the AppError interface
 interface AppError extends Error {
@@ -348,16 +349,15 @@ export class DoctorService {
       throw new NotFoundError('Doctor');
     }
 
-    // TODO: Implement actual stats calculation when appointment and consultation tables are ready
-    // For now, return mock stats
+    const stats = await doctorStats(doctorId);
     return {
       doctorId,
-      totalAppointments: 0,
-      completedConsultations: 0,
-      totalRevenue: 0,
-      averageRating: 0,
-      patientCount: 0,
-      upcomingAppointments: 0,
+      totalAppointments: stats?.totalAppointments ?? 0,
+      completedConsultations: stats?.totalConsultations ?? 0,
+      totalRevenue: Number(stats?.paidRevenue ?? 0),
+      averageRating: 0, // No rating feature yet
+      patientCount: stats?.totalPatients ?? 0,
+      upcomingAppointments: stats?.upcomingAppointments ?? 0,
     };
   }
 

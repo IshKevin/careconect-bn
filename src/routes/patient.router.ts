@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { PatientController } from '../controllers/patient.controller';
-import { requireAuth, requirePatient, requireDoctor, requireAdmin } from '../middleware/authMiddleware';
+import { requireAuth, requirePatient, requireDoctor, requireAdmin, requireSelfParam, requireMedicalAccess } from '../middleware/authMiddleware';
 
 const router = Router();
 const patientController = new PatientController();
@@ -34,12 +34,12 @@ router.delete('/medications/:medicationId', requireAuth, requirePatient, patient
 router.get('/preferences', requireAuth, requirePatient, patientController.getPreferences.bind(patientController));
 router.put('/preferences', requireAuth, requirePatient, patientController.updatePreferences.bind(patientController));
 
-// -------- Public onboarding (no-auth) --------
-router.post('/public/:userId/profile', patientController.createOrUpdateProfilePublic.bind(patientController));
-router.post('/public/:userId/medical-history', patientController.addMedicalHistoryPublic.bind(patientController));
-router.post('/public/:userId/allergies', patientController.addAllergyPublic.bind(patientController));
-router.post('/public/:userId/medications', patientController.addMedicationPublic.bind(patientController));
-router.put('/public/:userId/preferences', patientController.updatePreferencesPublic.bind(patientController));
+// -------- Onboarding by userId: signed in, and only for the user's own record --------
+router.post('/public/:userId/profile', requireAuth, requireSelfParam(), patientController.createOrUpdateProfilePublic.bind(patientController));
+router.post('/public/:userId/medical-history', requireAuth, requireSelfParam(), patientController.addMedicalHistoryPublic.bind(patientController));
+router.post('/public/:userId/allergies', requireAuth, requireSelfParam(), patientController.addAllergyPublic.bind(patientController));
+router.post('/public/:userId/medications', requireAuth, requireSelfParam(), patientController.addMedicationPublic.bind(patientController));
+router.put('/public/:userId/preferences', requireAuth, requireSelfParam(), patientController.updatePreferencesPublic.bind(patientController));
 
 // -------- Doctor/Admin access by userId --------
 router.get('/admin/:userId/profile', requireAuth, requireAdmin, patientController.getProfileByUserId.bind(patientController));
@@ -49,11 +49,11 @@ router.get('/admin/:userId/allergies', requireAuth, requireAdmin, patientControl
 router.get('/admin/:userId/medications', requireAuth, requireAdmin, patientController.getMedicationsByUserId.bind(patientController));
 router.get('/admin/:userId/preferences', requireAuth, requireAdmin, patientController.getPreferencesByUserId.bind(patientController));
 
-router.get('/doctor/:userId/profile', requireAuth, requireDoctor, patientController.getProfileByUserId.bind(patientController));
-router.get('/doctor/:userId/medical-summary', requireAuth, requireDoctor, patientController.getMedicalSummaryByUserId.bind(patientController));
-router.get('/doctor/:userId/medical-history', requireAuth, requireDoctor, patientController.getMedicalHistoryByUserId.bind(patientController));
-router.get('/doctor/:userId/allergies', requireAuth, requireDoctor, patientController.getAllergiesByUserId.bind(patientController));
-router.get('/doctor/:userId/medications', requireAuth, requireDoctor, patientController.getMedicationsByUserId.bind(patientController));
-router.get('/doctor/:userId/preferences', requireAuth, requireDoctor, patientController.getPreferencesByUserId.bind(patientController));
+router.get('/doctor/:userId/profile', requireAuth, requireDoctor, requireMedicalAccess(), patientController.getProfileByUserId.bind(patientController));
+router.get('/doctor/:userId/medical-summary', requireAuth, requireDoctor, requireMedicalAccess(), patientController.getMedicalSummaryByUserId.bind(patientController));
+router.get('/doctor/:userId/medical-history', requireAuth, requireDoctor, requireMedicalAccess(), patientController.getMedicalHistoryByUserId.bind(patientController));
+router.get('/doctor/:userId/allergies', requireAuth, requireDoctor, requireMedicalAccess(), patientController.getAllergiesByUserId.bind(patientController));
+router.get('/doctor/:userId/medications', requireAuth, requireDoctor, requireMedicalAccess(), patientController.getMedicationsByUserId.bind(patientController));
+router.get('/doctor/:userId/preferences', requireAuth, requireDoctor, requireMedicalAccess(), patientController.getPreferencesByUserId.bind(patientController));
 
 export default router;

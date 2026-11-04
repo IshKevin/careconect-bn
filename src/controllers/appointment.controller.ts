@@ -8,6 +8,7 @@ import {
   rescheduleAppointmentSchema,
 } from '../db/schemas/appointments';
 import { z } from 'zod';
+import { assertCanActForPatient, assertEmailVerified } from '../services/access.service';
 
 // Define the AppError interface
 interface AppError extends Error {
@@ -49,7 +50,12 @@ export class AppointmentController {
     const startTime = Date.now();
     try {
       const data = bookAppointmentSchema.parse(req.body);
-      const appointment = await this.appointmentService.bookAppointment(req.user!.userId, data);
+      // A sponsor books for a linked patient; a patient books for themselves (or a patient they sponsor).
+      const { patientUserId } = z.object({ patientUserId: z.string().uuid().optional() }).parse(req.body);
+      const targetPatientId = patientUserId ?? req.user!.userId;
+      await assertEmailVerified(req.user!.userId);
+      await assertCanActForPatient(req.user!, targetPatientId);
+      const appointment = await this.appointmentService.bookAppointment(targetPatientId, data);
       return res
         .setHeader('X-Response-Time', `${Date.now() - startTime}ms`)
         .status(201)

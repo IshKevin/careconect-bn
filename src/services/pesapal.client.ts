@@ -141,4 +141,25 @@ export class PesapalClient {
     const query = new URLSearchParams({ orderTrackingId });
     return this.request<PesapalTransactionStatus>('GET', `/Transactions/GetTransactionStatus?${query.toString()}`);
   }
+
+  /**
+   * Asks Pesapal to refund a completed payment. Request fields follow Pesapal's v3 RefundRequest.
+   * Not verified against a live sandbox yet: enabled only with PESAPAL_REFUNDS_ENABLED=true.
+   */
+  async requestRefund(input: { confirmationCode: string; amount: number; username: string; remarks: string }): Promise<{ refund_request_id?: string; status?: string; error?: { message?: string } | null }> {
+    const data = await this.request<{ refund_request_id?: string; status?: string; error?: { message?: string } | null }>(
+      'POST',
+      '/Transactions/RefundRequest',
+      {
+        confirmation_code: input.confirmationCode,
+        amount: input.amount,
+        username: input.username,
+        remarks: input.remarks,
+      },
+    );
+    if (!data.refund_request_id && data.error) {
+      throw new PaymentError(`Pesapal refund failed: ${data.error.message ?? 'unknown error'}`);
+    }
+    return data;
+  }
 }

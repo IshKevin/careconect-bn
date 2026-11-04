@@ -3,6 +3,7 @@ import { relations } from 'drizzle-orm';
 import { createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { users } from './users';
+import { facilities } from './facilities';
 
 // Doctors table
 export const doctors = pgTable('doctors', {
@@ -12,6 +13,7 @@ export const doctors = pgTable('doctors', {
   specialty: varchar('specialty', { length: 100 }).notNull(),
   consultationFee: decimal('consultation_fee', { precision: 10, scale: 2 }).default('0.00').notNull(),
   isActive: boolean('is_active').default(true).notNull(),
+  facilityId: uuid('facility_id').references(() => facilities.facilityId, { onDelete: 'set null' }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 });
@@ -111,11 +113,11 @@ export const createDoctorByAdminSchema = z.object({
 export const doctorFiltersSchema = z.object({
   specialty: z.enum(specialties).optional(),
   isActive: z.boolean().optional(),
-  minFee: z.number().min(0).optional(),
-  maxFee: z.number().min(0).optional(),
+  minFee: z.coerce.number().min(0).optional(),
+  maxFee: z.coerce.number().min(0).optional(),
   search: z.string().optional(), // Search by name or license number
-  page: z.number().int().min(1).default(1),
-  limit: z.number().int().min(1).max(100).default(10),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
 });
 
 export const doctorAvailabilityStatusSchema = z.object({

@@ -190,3 +190,18 @@ export const timestampSchema = {
 } as const;
 export { emailSuppressions, emailSuppressionReasonEnum } from './email-suppressions';
 export type { EmailSuppression } from './email-suppressions';
+
+export {
+  sponsorLinks,
+  sponsorLinksRelations,
+  sponsorLinkStatusEnum,
+} from './sponsor-links';
+
+export type { SponsorLink, SponsorLinkStatus } from './sponsor-links';
+
+export { facilities, facilityVerificationEnum } from './facilities';
+export type { Facility, FacilityVerificationStatus } from './facilities';
+export { refunds, refundsRelations, refundStatusEnum } from './refunds';
+export type { Refund, RefundStatus } from './refunds';
+export { reconciliationRuns } from './reconciliation';
+export type { ReconciliationRun } from './reconciliation';

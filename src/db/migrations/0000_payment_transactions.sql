@@ -6,7 +6,7 @@ CREATE TYPE "public"."allergen_type" AS ENUM('drug', 'food', 'environmental', 'o
 CREATE TYPE "public"."blood_type" AS ENUM('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-');--> statement-breakpoint
 CREATE TYPE "public"."communication_method" AS ENUM('email', 'sms', 'phone', 'app_notification');--> statement-breakpoint
 CREATE TYPE "public"."condition_type" AS ENUM('allergy', 'chronic_condition', 'past_surgery', 'family_history', 'medication');--> statement-breakpoint
-CREATE TYPE "public"."invoice_status" AS ENUM('pending', 'paid', 'cancelled');--> statement-breakpoint
+CREATE TYPE "public"."invoice_status" AS ENUM('pending', 'paid', 'cancelled', 'refunded');--> statement-breakpoint
 CREATE TYPE "public"."medication_route" AS ENUM('oral', 'injection', 'topical', 'inhalation', 'other');--> statement-breakpoint
 CREATE TYPE "public"."payment_provider" AS ENUM('pesapal');--> statement-breakpoint
 CREATE TYPE "public"."payment_transaction_status" AS ENUM('pending', 'completed', 'failed', 'reversed', 'invalid');--> statement-breakpoint
