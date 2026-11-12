@@ -74,6 +74,12 @@ if (parsed.NODE_ENV === 'production') {
   if (missing.length > 0) {
     throw new Error(`Missing required production environment variables: ${missing.join(', ')}`);
   }
+
+  // "coturn" only resolves inside Docker; browsers need the server's public host name or IP.
+  const internalIce = [parsed.VIDEO_STUN_URLS, parsed.VIDEO_TURN_URLS].some((urls) => /(^|,)\s*(stun|turns?):coturn[:?]/.test(urls));
+  if (internalIce) {
+    console.warn('VIDEO_STUN_URLS / VIDEO_TURN_URLS point at "coturn", which browsers cannot reach. Use the public host of the TURN server.');
+  }
 }
 
 const envVars = parsed;

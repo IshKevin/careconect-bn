@@ -108,6 +108,12 @@ const run = async (): Promise<void> => {
   ));
 };
 
+// Refuse to create known-password accounts on a production database by accident.
+if (config.env === 'production' && process.env['ALLOW_SEED'] !== 'true') {
+  console.error('Refusing to seed: NODE_ENV is production. Set ALLOW_SEED=true only for a throwaway test database.');
+  process.exit(1);
+}
+
 run()
   .then(() => process.exit(0))
   .catch((error) => {
