@@ -16,6 +16,10 @@ const client = postgres(connectionString, {
   connect_timeout: config.database.connectTimeout,
   ssl: config.database.ssl,
   prepare: false, // Disable prepared statements for better compatibility with pooled proxies
+  // count(*) returns int8, which postgres-js gives back as a string ("0"). Counts fit safely in a JS number.
+  types: {
+    int8: { to: 20, from: [20], serialize: (value: number) => String(value), parse: (value: string) => Number(value) },
+  },
 });
 
 // Create drizzle instance
