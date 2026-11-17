@@ -1,4 +1,5 @@
 import express from 'express';
+import { maintenanceGuard } from './middleware/maintenance';
 import helmet from 'helmet';
 import cors from 'cors';
 import morgan from 'morgan';
@@ -92,6 +93,8 @@ app.get('/', (req, res) => {
   });
 });
 
+// Maintenance mode (admin setting): refuse changes from non-admins while it is on.
+app.use(maintenanceGuard);
 app.use(apiRouter);
 
 // 404 handler for undefined routes

@@ -205,3 +205,6 @@ export { refunds, refundsRelations, refundStatusEnum } from './refunds';
 export type { Refund, RefundStatus } from './refunds';
 export { reconciliationRuns } from './reconciliation';
 export type { ReconciliationRun } from './reconciliation';
+
+export { systemSettings } from './system-settings';
+export type { SystemSettingsRow } from './system-settings';

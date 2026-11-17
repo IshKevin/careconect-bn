@@ -52,6 +52,7 @@ router.patch('/users/:user_id/status', adminOnly, AdminController.updateUserStat
 router.delete('/users/:user_id', adminOnly, AdminController.deleteUser);
 
 router.get('/metrics/overview', adminOnly, AdminController.getSystemMetrics);
+router.get('/settings', adminOnly, AdminController.getSystemSettings);
 router.patch('/settings', adminOnly, AdminController.updateSystemSettings);
 router.get('/audit-logs', adminOnly, AdminController.getAuditLogs);
 router.post('/reports/generate', adminOnly, AdminController.triggerReportGeneration);

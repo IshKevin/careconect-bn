@@ -3,6 +3,9 @@ import { eq } from 'drizzle-orm';
 import { db } from '../config/database';
 import { emailSuppressions } from '../db/schemas';
 import { isDemoEmail } from '../db/demo-accounts';
+import { getSettings } from './settings.service';
+
+const SECURITY_TEMPLATES = new Set<string>(['password-reset', 'email-verify']);
 import { config } from '../config/env';
 import { logger } from '../config/logger';
 
@@ -100,6 +103,12 @@ export class EmailService {
 
     if (!this.client) {
       logger.warn(`Email not sent (Resend not configured): ${options.template}`);
+      return false;
+    }
+
+    // Admin setting: appointment confirmations and receipts can be switched off. Security emails always go out.
+    if (!SECURITY_TEMPLATES.has(options.template) && !(await getSettings()).emailNotifications) {
+      logger.info(`Email skipped (notifications turned off by an admin): ${options.template}`);
       return false;
     }
 

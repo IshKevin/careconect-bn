@@ -1,3 +1,5 @@
+import { ZodError } from 'zod';
+import { getSettings, updateSettings } from '../services/settings.service';
 import { Request, Response, NextFunction } from 'express';
 import * as AdminService from '../services/admin.service';
 
@@ -55,11 +57,22 @@ export const getSystemMetrics = async (req: Request, res: Response, next: NextFu
     }
 };
 
+export const getSystemSettings = async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+        res.json({ success: true, data: await getSettings() });
+    } catch (err) {
+        next(err);
+    }
+};
+
 export const updateSystemSettings = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const result = await AdminService.updateSystemSettings(req.body);
-        res.json(result);
+        const data = await updateSettings(req.body, req.user!.userId);
+        res.json({ success: true, data });
     } catch (err) {
+        if (err instanceof ZodError) {
+            return res.status(400).json({ success: false, message: err.errors[0]?.message ?? 'Invalid settings', errors: err.errors });
+        }
         next(err);
     }
 };

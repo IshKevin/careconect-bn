@@ -16,6 +16,7 @@ import * as jwt from 'jsonwebtoken';
 import { config } from '../config/env';
 import { emailService } from './email.service';
 import { isDemoEmail } from '../db/demo-accounts';
+import { getSettings } from './settings.service';
 import { v4 as uuidv4 } from 'uuid';
 
 // Define the AppError interface (moved from errors.ts to align with controller)
@@ -171,6 +172,11 @@ export class AuthService {
 
   async register(data: UserRegistration): Promise<UserWithProfile> {
     const { email, phoneNumber, password, userType, firstName, lastName } = data;
+
+    // Admin setting: registrations can be closed (admins can still create accounts).
+    if (!(await getSettings()).allowSelfSignup) {
+      throw new AuthorizationError('New registrations are closed at the moment. Please contact support.');
+    }
 
     // Check if user exists
     const existingUser = await db

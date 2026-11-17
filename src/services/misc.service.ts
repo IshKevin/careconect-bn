@@ -1,3 +1,4 @@
+import { getSettings, publicSettings } from './settings.service';
 import { specialties } from '../db/schemas/doctors';
 
 export const getSpecialties = async () => {
@@ -23,8 +24,9 @@ export const getHealth = async () => {
 
 export const getConfig = async () => {
     return {
+        appName: 'IsanoMed',
+        ...publicSettings(await getSettings()),
         uploads: { maxSizeMb: 10, allowedTypes: ['image/jpeg', 'image/png', 'application/pdf'] },
-        notifications: { providers: ['email', 'sms'], defaultProvider: 'email' },
     };
 };
 

@@ -91,11 +91,6 @@ export const getSystemMetrics = async () => {
     };
 };
 
-// No persistent settings store available; echo back payload for now
-export const updateSystemSettings = async (settings: any) => {
-    return { updated: true, settings, updatedAt: new Date().toISOString() };
-};
-
 // No audit table present; return empty list with pagination
 export const getAuditLogs = async (_query: any) => {
     return { logs: [], pagination: { page: 1, limit: 10, count: 0 } };
