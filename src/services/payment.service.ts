@@ -138,7 +138,9 @@ export class PaymentService {
         .update(paymentTransactions)
         .set({ status: 'failed', updatedAt: new Date() })
         .where(eq(paymentTransactions.txRef, txRef));
-      throw error;
+      // Pesapal's own error text (credentials, IPN, amounts) is for the operator, not the patient.
+      logger.error(`Pesapal checkout failed for ${txRef}: ${error instanceof Error ? error.message : String(error)}`);
+      throw new PaymentError('We could not start the payment right now. Please try again in a few minutes, or contact support@isanomed.org.');
     }
   }
 
