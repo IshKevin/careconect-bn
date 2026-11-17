@@ -49,8 +49,8 @@ const envSchema = z.object({
 
   // Internal video calls: WebRTC media between browsers, signalling on this server,
   // and a self-hosted TURN relay (coturn) for networks that block direct connections.
-  VIDEO_STUN_URLS: z.string().default('stun:coturn:3478'),
-  VIDEO_TURN_URLS: z.string().default('turn:coturn:3478?transport=udp'),
+  VIDEO_STUN_URLS: z.string().default('stun:localhost:3478'),
+  VIDEO_TURN_URLS: z.string().default('turn:localhost:3478?transport=udp'),
   VIDEO_TURN_SECRET: z.string().min(32, 'VIDEO_TURN_SECRET must be at least 32 characters').optional(),
   VIDEO_JOIN_WINDOW_BEFORE_MIN: z.string().transform(Number).default('15'),
   VIDEO_JOIN_WINDOW_AFTER_MIN: z.string().transform(Number).default('30'),
@@ -75,10 +75,11 @@ if (parsed.NODE_ENV === 'production') {
     throw new Error(`Missing required production environment variables: ${missing.join(', ')}`);
   }
 
-  // "coturn" only resolves inside Docker; browsers need the server's public host name or IP.
-  const internalIce = [parsed.VIDEO_STUN_URLS, parsed.VIDEO_TURN_URLS].some((urls) => /(^|,)\s*(stun|turns?):coturn[:?]/.test(urls));
+  // Browsers need the server's public host name or IP, not a Docker or loopback name.
+  const internalIce = [parsed.VIDEO_STUN_URLS, parsed.VIDEO_TURN_URLS].some((urls) =>
+    /(^|,)\s*(stun|turns?):(coturn|localhost|127\.0\.0\.1)[:?]/.test(urls));
   if (internalIce) {
-    console.warn('VIDEO_STUN_URLS / VIDEO_TURN_URLS point at "coturn", which browsers cannot reach. Use the public host of the TURN server.');
+    console.warn('VIDEO_STUN_URLS / VIDEO_TURN_URLS point at coturn/localhost, which browsers cannot reach. Use the public host of the TURN server.');
   }
 }
 

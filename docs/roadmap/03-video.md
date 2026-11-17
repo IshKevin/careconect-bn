@@ -75,7 +75,7 @@ VIDEO_JOIN_WINDOW_BEFORE_MIN=15
 VIDEO_JOIN_WINDOW_AFTER_MIN=30
 ```
 
-For production, `<coturn-host>` must be the public host or IP of the coturn server, and `VIDEO_PUBLIC_IP` must match it. Ports to open: 3478 (UDP and TCP) and 49160 to 49200 (UDP).
+For production, `<coturn-host>` must be the public host or IP of the coturn server, and `VIDEO_PUBLIC_IP` must match it. Ports to open: 3478 (UDP and TCP) and 49152 to 65535 (UDP). coturn runs with host networking, so the host firewall (for example ufw) applies to these ports.
 
 ## 7. Testing
 
