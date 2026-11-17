@@ -1,5 +1,6 @@
 import { config } from '../config/env';
 import { PaymentError } from '../utils/errors';
+import { logger } from '../config/logger';
 
 // Thin client for Pesapal API v3 (JSON). Field names follow Pesapal's v3 docs;
 // confirm each against a live sandbox response before go-live (see docs/roadmap/01-payment-gateway.md).
@@ -61,7 +62,8 @@ export class PesapalClient {
 
   private assertConfigured(): void {
     if (!config.pesapal.consumerKey || !config.pesapal.consumerSecret) {
-      throw new PaymentError('Pesapal is not configured. Set PESAPAL_CONSUMER_KEY and PESAPAL_CONSUMER_SECRET.');
+      logger.error('Payment refused: Pesapal is not configured (set PESAPAL_CONSUMER_KEY and PESAPAL_CONSUMER_SECRET)');
+      throw new PaymentError('Online payment is not available yet. Please try again later, or contact support@isanomed.org.');
     }
   }
 

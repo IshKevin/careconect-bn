@@ -29,8 +29,8 @@ export const notFoundHandler = (req: Request, res: Response, _next: NextFunction
       },
     ],
     requestId,
-    'https://docs.api.healthsystem.rw/endpoints',
-    'api-support@healthsystem.rw'
+    undefined,
+    'support@isanomed.org'
   );
 
   res.status(StatusCodes.NOT_FOUND).json(response);

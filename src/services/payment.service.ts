@@ -75,7 +75,9 @@ export class PaymentService {
    */
   async initiatePayment(input: InitiatePaymentInput, requester: Requester): Promise<InitiatePaymentResult> {
     if (!config.pesapal.ipnId || !config.pesapal.callbackUrl) {
-      throw new PaymentError('Pesapal is not fully configured (PESAPAL_IPN_ID and PESAPAL_CALLBACK_URL are required).');
+      // The patient sees this message; the missing setting goes to the log for the operator.
+      logger.error('Payment refused: Pesapal is not fully configured (PESAPAL_IPN_ID and PESAPAL_CALLBACK_URL are required)');
+      throw new PaymentError('Online payment is not available yet. Please try again later, or contact support@isanomed.org.');
     }
 
     const [invoice] = await db.select().from(invoices).where(eq(invoices.invoiceId, input.invoiceId)).limit(1);

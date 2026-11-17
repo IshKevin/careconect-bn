@@ -1,9 +1,10 @@
 import { createHmac } from 'crypto';
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import * as jwt from 'jsonwebtoken';
 import { db } from '../config/database';
 import { config } from '../config/env';
-import { appointments, doctors, userProfiles } from '../db/schemas';
+import { appointments, doctors, userProfiles, users } from '../db/schemas';
+import { isDemoEmail } from '../db/demo-accounts';
 import { AuthorizationError, ExternalServiceError, NotFoundError, ValidationError } from '../utils/errors';
 
 // Internal video consultations. Media is WebRTC between the two browsers (encrypted with
@@ -84,10 +85,21 @@ export class VideoService {
       throw new ValidationError('This appointment is no longer active');
     }
 
-    const startMs = Date.parse(`${row.scheduledDate}T${row.scheduledTime}${KIGALI_OFFSET}`);
+    const nowMs = Date.now();
+    let startMs = Date.parse(`${row.scheduledDate}T${row.scheduledTime}${KIGALI_OFFSET}`);
+
+    // Demo appointments (demo patient with demo doctor) can be joined at any time, so people trying the app
+    // can test a call. Real appointments always keep the join window.
+    const participants = await db
+      .select({ email: users.email })
+      .from(users)
+      .where(inArray(users.userId, [row.patientId, row.doctorUserId]));
+    if (participants.length === 2 && participants.every((p) => isDemoEmail(p.email))) {
+      startMs = nowMs;
+    }
+
     const opensMs = startMs - config.video.joinWindowBeforeMin * 60_000;
     const closesMs = startMs + config.video.joinWindowAfterMin * 60_000;
-    const nowMs = Date.now();
 
     if (nowMs < opensMs) {
       throw new AuthorizationError(`The video call opens at ${new Date(opensMs).toISOString()}`);

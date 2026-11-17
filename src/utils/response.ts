@@ -67,8 +67,8 @@ export const createErrorResponse = (
     error: {
       code,
       message,
-      documentation: documentation || `https://docs.api.healthsystem.rw/errors/${code.toLowerCase()}`,
-      supportContact: supportContact || 'api-support@healthsystem.rw',
+      ...(documentation ? { documentation } : {}),
+      supportContact: supportContact || 'support@isanomed.org',
     },
     metadata: {
       requestId: requestId || generateRequestId(),
