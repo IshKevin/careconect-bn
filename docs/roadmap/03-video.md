@@ -69,13 +69,17 @@ Browser opens Socket.IO /video with auth.token = joinToken
 
 ```
 VIDEO_TURN_SECRET=                    # 32+ random characters; shared with coturn
-VIDEO_STUN_URLS=stun:<coturn-host>:3478
-VIDEO_TURN_URLS=turn:<coturn-host>:3478?transport=udp
+VIDEO_PUBLIC_IP=<server-public-ip>
+VIDEO_TURN_DOMAIN=turn.<server-public-ip>.sslip.io   # or turn.your-domain; must resolve to the server
+VIDEO_STUN_URLS=                      # empty: plain STUN (UDP 3478) is not reachable when only 443 is open
+VIDEO_TURN_URLS=turns:<VIDEO_TURN_DOMAIN>:443?transport=tcp
 VIDEO_JOIN_WINDOW_BEFORE_MIN=15
 VIDEO_JOIN_WINDOW_AFTER_MIN=30
 ```
 
-For production, `<coturn-host>` must be the public host or IP of the coturn server, and `VIDEO_PUBLIC_IP` must match it. Ports to open: 3478 (UDP and TCP) and the relay range `VIDEO_RELAY_MIN_PORT`-`VIDEO_RELAY_MAX_PORT` (UDP, default 49152 to 65535). If the server is behind NAT (its own address is private), set `VIDEO_PRIVATE_IP` to that address and have the NAT forward the same ports to it. coturn runs with host networking, so the host firewall (for example ufw) applies to these ports.
+In production browsers reach coturn as **TURN over TLS on port 443**. The `coturn` service in `docker-compose.yml` carries Traefik labels (the proxy Coolify uses): Traefik terminates TLS for `VIDEO_TURN_DOMAIN`, gets its Let's Encrypt certificate, and forwards the connection to coturn on port 3478. Every other host name on 443 keeps going to the API. Only 80 and 443 must reach the server, so this works behind NAT and on networks that allow nothing but HTTPS. When both callers relay, coturn passes media between them internally, so its UDP relay ports never need to be reachable from outside. Do not assign a Coolify domain to the `coturn` service; the labels handle routing.
+
+coturn refuses to relay to private, loopback and link-local addresses (other containers and the host), except its own address, which is needed to pass media between two relayed callers. TCP relaying is disabled.
 
 ## 7. Testing
 

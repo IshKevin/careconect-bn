@@ -64,7 +64,7 @@ Taag is removed (closed by the provider). Email uses Resend, not Amazon SES.
 
 | ID | Repo | Pri | Est | Task |
 |---|---|---|---|---|
-| VID-01 | EXT | P0 | — | Public host for the coturn relay; open UDP/TCP 3478 and UDP 49152–65535; set VIDEO_TURN_SECRET |
+| VID-01 | EXT | P0 | — | TURN host name (VIDEO_TURN_DOMAIN) resolving to the server; TURN over TLS on 443 via Traefik; set VIDEO_TURN_SECRET |
 | VID-02 | BE | P1 | 3 | Video service: create room per appointment, idempotent; delete on cancel |
 | VID-03 | BE | P1 | 2 | `GET /consultation/:id/join`: authorization, join window, meeting token |
 | VID-04 | FE | P1 | 3 | Consultation page: join button, device check, WebRTC call component (built), fallback message |

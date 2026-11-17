@@ -64,27 +64,26 @@ services:
         condition: service_completed_successfully
     restart: unless-stopped
 
-  # TURN/STUN relay for video consultations, used when a direct browser-to-browser connection is blocked.
+  # TURN relay for video consultations, used when a direct browser-to-browser connection is blocked.
   # It accepts only time-limited credentials made by the API from VIDEO_TURN_SECRET (see src/services/video.service.ts).
-  # In production set VIDEO_PUBLIC_IP to the server's public IP and open 3478 (UDP and TCP) and the relay range (UDP).
-  # Server behind NAT (its own address is private, e.g. 10.x): also set VIDEO_PRIVATE_IP to that address, and have
-  # the NAT forward 3478 (UDP+TCP) and VIDEO_RELAY_MIN_PORT-VIDEO_RELAY_MAX_PORT (UDP) to it.
+  #
+  # Browsers reach it as TURN over TLS on port 443 (turns:VIDEO_TURN_DOMAIN:443?transport=tcp): the reverse proxy
+  # (Traefik, as used by Coolify) terminates TLS for VIDEO_TURN_DOMAIN and forwards the connection to coturn:3478.
+  # Only 80/443 must reach the server, so this works behind NAT and on networks that allow nothing but HTTPS.
+  # When both callers relay, coturn passes media between them internally (public address mapped to its own).
   coturn:
     image: coturn/coturn:4.6.2
     environment:
       VIDEO_TURN_SECRET: ${VIDEO_TURN_SECRET:?Set VIDEO_TURN_SECRET in .env (32+ random characters)}
       VIDEO_PUBLIC_IP: ${VIDEO_PUBLIC_IP:-}
-      VIDEO_PRIVATE_IP: ${VIDEO_PRIVATE_IP:-}
       VIDEO_RELAY_MIN_PORT: ${VIDEO_RELAY_MIN_PORT:-49152}
       VIDEO_RELAY_MAX_PORT: ${VIDEO_RELAY_MAX_PORT:-65535}
-    # Host networking: coturn binds straight to the server's ports, with no Docker port mapping or NAT in
-    # between. This is the reliable way to run TURN in Docker. Because it sits on the host network, it is
-    # forbidden from relaying to private, loopback and link-local addresses (the server's internal services).
-    # The host firewall applies here: open 3478 (UDP+TCP) and 49152-65535 (UDP).
-    network_mode: host
     entrypoint: ["/bin/sh", "-c"]
+    # Relaying to private, loopback and link-local addresses is denied, so the relay cannot reach other containers
+    # or the host. The one exception is coturn's own address, needed to pass media between two relayed callers.
     command:
       - >-
+        SELF_IP=$$(hostname -i | awk '{print $$1}');
         exec turnserver -n --log-file=stdout --fingerprint --no-cli --realm=isanomed
         --use-auth-secret --static-auth-secret="$$VIDEO_TURN_SECRET"
         --listening-port=3478 --min-port=$$VIDEO_RELAY_MIN_PORT --max-port=$$VIDEO_RELAY_MAX_PORT
@@ -99,8 +98,20 @@ services:
         --denied-peer-ip=::1
         --denied-peer-ip=fc00::-fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
         --denied-peer-ip=fe80::-febf:ffff:ffff:ffff:ffff:ffff:ffff:ffff
-        $${VIDEO_PUBLIC_IP:+--external-ip=$$VIDEO_PUBLIC_IP$${VIDEO_PRIVATE_IP:+/$$VIDEO_PRIVATE_IP}}
-        $${VIDEO_PRIVATE_IP:+--listening-ip=$$VIDEO_PRIVATE_IP --relay-ip=$$VIDEO_PRIVATE_IP --allowed-peer-ip=$$VIDEO_PRIVATE_IP}
+        --relay-ip=$$SELF_IP --allowed-peer-ip=$$SELF_IP
+        $${VIDEO_PUBLIC_IP:+--external-ip=$$VIDEO_PUBLIC_IP/$$SELF_IP}
+    # Local development only: reachable on this machine at turn:localhost:3478. Not published to the internet.
+    ports:
+      - "127.0.0.1:3478:3478/udp"
+      - "127.0.0.1:3478:3478/tcp"
+    labels:
+      - traefik.enable=true
+      - traefik.tcp.routers.isanomed-turn.entrypoints=https
+      - traefik.tcp.routers.isanomed-turn.rule=HostSNI(`${VIDEO_TURN_DOMAIN:-turn.localhost}`)
+      - traefik.tcp.routers.isanomed-turn.tls=true
+      - traefik.tcp.routers.isanomed-turn.tls.certresolver=letsencrypt
+      - traefik.tcp.routers.isanomed-turn.service=isanomed-turn
+      - traefik.tcp.services.isanomed-turn.loadbalancer.server.port=3478
     restart: unless-stopped
 
 volumes:

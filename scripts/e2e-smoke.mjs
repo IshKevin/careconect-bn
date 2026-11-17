@@ -109,8 +109,11 @@ const main = async () => {
   check('stranger cannot join the call (403)', joinStranger.status === 403, `status ${joinStranger.status}`);
 
   if (joinPatient.json.data && joinDoctor.json.data) {
-    const iceOk = joinPatient.json.data.iceServers?.some((s) => String(s.urls).startsWith('turn')) && joinPatient.json.data.iceServers?.some((s) => String(s.urls).startsWith('stun'));
-    check('join response includes STUN and TURN servers', Boolean(iceOk));
+    // TURN (turn: or turns:) with credentials is required; plain STUN is optional (absent when only 443 is reachable).
+    const servers = joinPatient.json.data.iceServers ?? [];
+    const iceOk = servers.some((s) => String(s.urls).startsWith('turn') && s.username && s.credential)
+      && servers.every((s) => (Array.isArray(s.urls) ? s.urls.length > 0 : Boolean(s.urls)));
+    check('join response includes TURN servers with credentials', Boolean(iceOk));
 
     const doctorSocket = io(`${API}/video`, { path: '/socket.io', transports: ['websocket'], auth: { token: joinDoctor.json.data.joinToken }, reconnection: false });
     let patientSocket;

@@ -118,9 +118,13 @@ export class VideoService {
     });
 
     const turn = turnCredentials(requester.userId, expUnix, secret);
+    // Browsers reject an ICE server with an empty url list, so leave out whichever kind is not configured
+    // (for example no plain STUN when only TURN over TLS on 443 can reach the server).
     const iceServers: IceServer[] = [
-      { urls: config.video.stunUrls },
-      { urls: config.video.turnUrls, username: turn.username, credential: turn.credential },
+      ...(config.video.stunUrls.length > 0 ? [{ urls: config.video.stunUrls }] : []),
+      ...(config.video.turnUrls.length > 0
+        ? [{ urls: config.video.turnUrls, username: turn.username, credential: turn.credential }]
+        : []),
     ];
 
     return {
