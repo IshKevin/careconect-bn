@@ -36,7 +36,14 @@ services:
       NODE_ENV: ${NODE_ENV:-production}
       DATABASE_URL: postgres://careconnect:${POSTGRES_PASSWORD:-careconnect-dev}@db:5432/careconnect
       DATABASE_SSL: disable
-    command: ["node", "dist/db/migrate.js"]
+      # true: create (or re-activate) the shared demo accounts after migrating, on every deploy. See docs/DEPLOYMENT.md.
+      SEED_DEMO_ACCOUNTS: ${SEED_DEMO_ACCOUNTS:-false}
+    # Migrations must succeed or the API does not start. The demo accounts are optional: a failure there is logged only.
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        node dist/db/migrate.js &&
+        if [ "$$SEED_DEMO_ACCOUNTS" = "true" ]; then node dist/db/seed-demo.js || echo "WARNING: demo accounts were not created"; fi
     # Coolify: this container exits after migrating, so keep it out of the stack's health status.
     labels:
       - exclude_from_hc=true

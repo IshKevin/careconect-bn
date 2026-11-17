@@ -13,7 +13,8 @@ import { DEMO_ACCOUNTS, DEMO_PASSWORD } from './demo-accounts';
 //   node dist/db/seed-demo.js             create or re-activate the demo accounts
 //   node dist/db/seed-demo.js --disable   suspend them (they can no longer log in); run before real launch
 //
-// On a production database, creating them is refused unless ALLOW_DEMO_SEED=true. --disable always works.
+// On a production database, creating them is refused unless ALLOW_DEMO_SEED=true or SEED_DEMO_ACCOUNTS=true.
+// --disable always works. With SEED_DEMO_ACCOUNTS=true every deploy runs this script automatically.
 
 type Role = 'admin' | 'doctor' | 'patient' | 'sponsor';
 
@@ -155,7 +156,10 @@ const disable = async (): Promise<void> => {
 
 const disabling = process.argv.includes('--disable');
 
-if (!disabling && config.env === 'production' && process.env['ALLOW_DEMO_SEED'] !== 'true') {
+// SEED_DEMO_ACCOUNTS=true is the deploy-time switch (docker-compose runs this script after migrating).
+const allowed = process.env['ALLOW_DEMO_SEED'] === 'true' || process.env['SEED_DEMO_ACCOUNTS'] === 'true';
+
+if (!disabling && config.env === 'production' && !allowed) {
   console.error('Refusing to create demo accounts: NODE_ENV is production. Set ALLOW_DEMO_SEED=true for this command if you want them.');
   process.exit(1);
 }

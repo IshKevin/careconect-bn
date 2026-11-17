@@ -30,6 +30,8 @@ Other projects share the server. The compose file only adds routes for its own h
 |---|---|---|---|
 | A | `api` | `197.243.27.200` | API |
 | A | `turn` | `197.243.27.200` | Video relay |
+| A | `@` | `197.243.27.200` | Web app (isanomed.org) |
+| CNAME | `www` | `isanomed.org` | Web app (redirects to isanomed.org) |
 | TXT | `resend._domainkey` | DKIM key shown by Resend | Email signing |
 | MX | `send` | `feedback-smtp.eu-west-1.amazonses.com` (priority 10) | Email bounces |
 | TXT | `send` | `v=spf1 include:amazonses.com ~all` | Email sender authorisation |
@@ -55,14 +57,14 @@ Start from `.env.example`; it lists every variable with a comment. Values specif
 
 ```
 NODE_ENV=production
-FRONTEND_URL=https://<web app domain>
-CORS_ORIGIN=https://<web app domain>
+FRONTEND_URL=https://isanomed.org
+CORS_ORIGIN=https://isanomed.org
 POSTGRES_PASSWORD=<long random value>
 
 PESAPAL_ENVIRONMENT=production            # sandbox while testing
 PESAPAL_IPN_URL=https://api.isanomed.org/api/v1/payments/webhook/pesapal
 PESAPAL_IPN_ID=<printed by the registration step, section 6>
-PESAPAL_CALLBACK_URL=https://<web app domain>/patient/invoices/return
+PESAPAL_CALLBACK_URL=https://isanomed.org/patient/invoices/return
 
 RESEND_API_KEY=re_...
 RESEND_FROM_ADDRESS=IsanoMed <no-reply@isanomed.org>
@@ -133,7 +135,7 @@ Deploy it as a separate Coolify resource from the `careconect-frontend` reposito
 
 | Setting | Value |
 |---|---|
-| Domain | the web app's domain, e.g. `https://isanomed.org` or `https://app.isanomed.org` |
+| Domain | `https://isanomed.org,https://www.isanomed.org` (redirect www to non-www) |
 | Build variable `NEXT_PUBLIC_API_BASE_URL` | `https://api.isanomed.org/api/v1` |
 | Build variable `NEXT_PUBLIC_SHOW_DEMO_ACCOUNTS` | `true` for the pilot and demos, `false` for real launch |
 
@@ -154,7 +156,9 @@ Shared sample accounts for demos, shown as one-click buttons on the login page w
 
 Password for all: `IsanoDemo#2026` (defined in `src/db/demo-accounts.ts`).
 
-Create them in the **api** container terminal:
+**Automatic (recommended):** set `SEED_DEMO_ACCOUNTS=true` in the API's Coolify environment and redeploy. The `migrate` step then creates the accounts after the migrations, on every deploy. If that fails, the deploy log shows `WARNING: demo accounts were not created` and the API still starts.
+
+**By hand**, in the **api** container terminal:
 
 ```bash
 node dist/db/seed-demo.js                          # while NODE_ENV is not production
@@ -164,7 +168,7 @@ ALLOW_DEMO_SEED=true node dist/db/seed-demo.js     # once NODE_ENV=production
 The script is safe to run again: it keeps existing data and resets the demo passwords. It adds sample data the first time: doctor working hours (Monday to Friday, 08:00 to 17:00), a past consultation with an unpaid invoice, a video appointment for the next day, and an active sponsor link.
 
 - No email is ever sent to `@demo.isanomed.org` addresses, and their passwords cannot be changed from the app, so one visitor cannot lock the others out.
-- Before real launch: set `NEXT_PUBLIC_SHOW_DEMO_ACCOUNTS=false`, redeploy the web app, and suspend the accounts with `node dist/db/seed-demo.js --disable`.
+- Before real launch: set `NEXT_PUBLIC_SHOW_DEMO_ACCOUNTS=false` (web app) and `SEED_DEMO_ACCOUNTS=false` (API), redeploy both, and suspend the accounts with `node dist/db/seed-demo.js --disable`.
 
 ## 10. Do not
 
