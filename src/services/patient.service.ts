@@ -61,6 +61,13 @@ const addMedicationSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
+// Edits send only the fields that change. An empty string clears an optional text or date field.
+const dateOrEmpty = z.union([z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'), z.literal('')]).optional();
+const updateAllergySchema = addAllergySchema.extend({ firstOccurrence: dateOrEmpty, lastOccurrence: dateOrEmpty }).partial();
+const updateMedicationSchema = addMedicationSchema.extend({ startDate: dateOrEmpty, endDate: dateOrEmpty, isActive: z.boolean().optional() }).partial();
+
+const toDateOrNull = (value: string | undefined) => (value === undefined ? undefined : value === '' ? null : new Date(value));
+
 const updatePreferencesSchema = z.object({
   preferredCommunicationMethod: z.enum(['email', 'sms', 'phone', 'app_notification']).optional(),
   appointmentReminderTiming: z.number().min(1).max(168).optional(), // 1 hour to 1 week
@@ -575,6 +582,65 @@ export class PatientService {
       ));
 
     return { success: true, message: 'Medical history entry deleted successfully' };
+  }
+
+  // Update allergy (only the patient's own record)
+  async updateAllergy(userId: string, allergyId: string, data: z.infer<typeof updateAllergySchema>) {
+    await this.validatePatientUser(userId);
+    const v = updateAllergySchema.parse(data);
+    const patientId = await this.requirePatientId(userId);
+
+    const updated = await db
+      .update(patientAllergies)
+      .set({
+        allergenType: v.allergenType,
+        allergenName: v.allergenName,
+        reactionSeverity: v.reactionSeverity,
+        symptoms: v.symptoms,
+        treatmentNotes: v.treatmentNotes,
+        firstOccurrence: toDateOrNull(v.firstOccurrence),
+        lastOccurrence: toDateOrNull(v.lastOccurrence),
+        // A change by the patient needs a fresh check by the doctor.
+        verifiedByDoctor: false,
+      })
+      .where(and(eq(patientAllergies.allergyId, allergyId), eq(patientAllergies.patientId, patientId)))
+      .returning();
+
+    if (!updated[0]) throw new NotFoundError('Allergy');
+    return updated[0];
+  }
+
+  // Update medication (only the patient's own record)
+  async updateMedication(userId: string, medicationId: string, data: z.infer<typeof updateMedicationSchema>) {
+    await this.validatePatientUser(userId);
+    const v = updateMedicationSchema.parse(data);
+    const patientId = await this.requirePatientId(userId);
+
+    const updated = await db
+      .update(patientMedications)
+      .set({
+        medicationName: v.medicationName,
+        genericName: v.genericName,
+        dosage: v.dosage,
+        frequency: v.frequency,
+        route: v.route,
+        pharmacyFilled: v.pharmacyFilled,
+        sideEffects: v.sideEffects,
+        isActive: v.isActive,
+        startDate: toDateOrNull(v.startDate),
+        endDate: toDateOrNull(v.endDate),
+      })
+      .where(and(eq(patientMedications.medicationId, medicationId), eq(patientMedications.patientId, patientId)))
+      .returning();
+
+    if (!updated[0]) throw new NotFoundError('Medication');
+    return updated[0];
+  }
+
+  private async requirePatientId(userId: string): Promise<string> {
+    const [patient] = await db.select({ patientId: patients.patientId }).from(patients).where(eq(patients.userId, userId)).limit(1);
+    if (!patient) throw new NotFoundError('Patient profile not found');
+    return patient.patientId;
   }
 
   // Delete allergy

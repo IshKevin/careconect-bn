@@ -22,11 +22,13 @@ router.delete('/medical-history/:historyId', requireAuth, requirePatient, patien
 // Allergies endpoints
 router.get('/allergies', requireAuth, requirePatient, patientController.getAllergies.bind(patientController));
 router.post('/allergies', requireAuth, requirePatient, patientController.addAllergy.bind(patientController));
+router.put('/allergies/:allergyId', requireAuth, requirePatient, patientController.updateAllergy.bind(patientController));
 router.delete('/allergies/:allergyId', requireAuth, requirePatient, patientController.deleteAllergy.bind(patientController));
 
 // Medications endpoints
 router.get('/medications', requireAuth, requirePatient, patientController.getMedications.bind(patientController));
 router.post('/medications', requireAuth, requirePatient, patientController.addMedication.bind(patientController));
+router.put('/medications/:medicationId', requireAuth, requirePatient, patientController.updateMedication.bind(patientController));
 router.put('/medications/:medicationId/status', requireAuth, requirePatient, patientController.updateMedicationStatus.bind(patientController));
 router.delete('/medications/:medicationId', requireAuth, requirePatient, patientController.deleteMedication.bind(patientController));
 

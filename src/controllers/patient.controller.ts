@@ -340,6 +340,30 @@ export class PatientController {
     }
   };
 
+  // Update allergy
+  updateAllergy = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) return res.status(401).json({ error: 'Authentication required' });
+      const result = await this.patientService.updateAllergy(userId, req.params.allergyId, req.body);
+      res.status(200).json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // Update medication
+  updateMedication = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) return res.status(401).json({ error: 'Authentication required' });
+      const result = await this.patientService.updateMedication(userId, req.params.medicationId, req.body);
+      res.status(200).json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   // Delete allergy
   deleteAllergy = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
