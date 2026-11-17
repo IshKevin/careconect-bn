@@ -15,6 +15,7 @@ import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 import { config } from '../config/env';
 import { emailService } from './email.service';
+import { isDemoEmail } from '../db/demo-accounts';
 import { v4 as uuidv4 } from 'uuid';
 
 // Define the AppError interface (moved from errors.ts to align with controller)
@@ -315,6 +316,11 @@ export class AuthService {
 
     if (!user[0]) {
       throw new NotFoundError('User');
+    }
+
+    // Demo accounts are shared by everyone trying the app; one visitor must not lock the others out.
+    if (isDemoEmail(user[0].email)) {
+      throw new AuthorizationError('The password of a demo account cannot be changed');
     }
 
     const isPasswordValid = await bcrypt.compare(data.currentPassword, user[0].passwordHash);

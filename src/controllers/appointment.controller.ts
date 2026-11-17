@@ -8,6 +8,9 @@ import {
   rescheduleAppointmentSchema,
 } from '../db/schemas/appointments';
 import { z } from 'zod';
+import { eq } from 'drizzle-orm';
+import { db } from '../config/database';
+import { doctors } from '../db/schemas';
 import { assertCanActForPatient, assertEmailVerified } from '../services/access.service';
 
 // Define the AppError interface
@@ -334,6 +337,52 @@ export class AppointmentController {
     try {
       const filters = appointmentFiltersSchema.pick({ appointmentStatus: true, startDate: true, endDate: true, page: true, limit: true }).parse(req.query);
       const result = await this.appointmentService.getPatientAppointments(req.user!.userId, filters);
+      return res
+        .setHeader('X-Response-Time', `${Date.now() - startTime}ms`)
+        .status(200)
+        .json({ 
+          success: true, 
+          data: result.appointments, 
+          pagination: result.pagination, 
+          requestId: req.requestId 
+        });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res
+          .setHeader('X-Response-Time', `${Date.now() - startTime}ms`)
+          .status(400)
+          .json({ success: false, errors: transformZodErrors(error.errors), requestId: req.requestId });
+      }
+      if (isAppError(error)) {
+        return res
+          .setHeader('X-Response-Time', `${Date.now() - startTime}ms`)
+          .status(error.statusCode)
+          .json({
+            success: false,
+            code: error.code,
+            message: error.message,
+            details: Array.isArray(error.details) ? error.details : [error.details],
+            requestId: req.requestId,
+          });
+      }
+      return res
+        .setHeader('X-Response-Time', `${Date.now() - startTime}ms`)
+        .status(500)
+        .json({ success: false, message: 'Internal server error', requestId: req.requestId });
+    }
+  }
+
+  // Get the signed-in doctor's appointments
+  async getMyDoctorAppointments(req: Request, res: Response): Promise<Response> {
+    const startTime = Date.now();
+    try {
+      const filters = appointmentFiltersSchema.pick({ appointmentStatus: true, startDate: true, endDate: true, page: true, limit: true }).parse(req.query);
+      // Appointments store the doctor's doctor_id, not the user id, so look it up first.
+      const [doctor] = await db.select({ doctorId: doctors.doctorId }).from(doctors).where(eq(doctors.userId, req.user!.userId)).limit(1);
+      if (!doctor) {
+        return res.status(404).json({ success: false, message: 'Doctor profile not found', requestId: req.requestId });
+      }
+      const result = await this.appointmentService.getDoctorAppointments(doctor.doctorId, filters);
       return res
         .setHeader('X-Response-Time', `${Date.now() - startTime}ms`)
         .status(200)

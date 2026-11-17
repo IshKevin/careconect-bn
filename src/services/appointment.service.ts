@@ -1,4 +1,5 @@
 import { eq, and, like, or, sql } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import { db } from '../config/database';
 import { users, userProfiles, doctors, appointments } from '../db/schemas';
 import {
@@ -122,6 +123,9 @@ export class AppointmentService {
       limit = 10,
     } = filters;
 
+    // The doctor's name lives in user_profiles too, so it needs a second, aliased join.
+    const doctorProfiles = alias(userProfiles, 'doctor_profiles');
+
     const baseQuery = db
       .select({
         appointmentId: appointments.appointmentId,
@@ -142,11 +146,14 @@ export class AppointmentService {
         // Doctor info
         doctorSpecialty: doctors.specialty,
         doctorConsultationFee: doctors.consultationFee,
+        doctorFirstName: doctorProfiles.firstName,
+        doctorLastName: doctorProfiles.lastName,
       })
       .from(appointments)
       .leftJoin(users, eq(appointments.patientId, users.userId))
       .leftJoin(userProfiles, eq(users.userId, userProfiles.userId))
-      .leftJoin(doctors, eq(appointments.doctorId, doctors.doctorId));
+      .leftJoin(doctors, eq(appointments.doctorId, doctors.doctorId))
+      .leftJoin(doctorProfiles, eq(doctors.userId, doctorProfiles.userId));
 
     // Build conditions
     const conditions: any[] = [];
@@ -211,11 +218,15 @@ export class AppointmentService {
             : undefined,
         },
         doctor: {
+          firstName: appointment.doctorFirstName,
+          lastName: appointment.doctorLastName,
           specialty: appointment.doctorSpecialty,
           consultationFee: appointment.doctorConsultationFee,
           user: {
             email: '',
-            profile: undefined,
+            profile: appointment.doctorFirstName
+              ? { firstName: appointment.doctorFirstName, lastName: appointment.doctorLastName }
+              : undefined,
           },
         },
       })),

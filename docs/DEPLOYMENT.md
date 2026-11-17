@@ -127,8 +127,47 @@ docker inspect $(docker ps -q --filter name=coturn) --format '{{json .Config.Lab
 docker logs coolify-proxy 2>&1 | grep -iE "isanomed-turn|turn\.isanomed" | tail -20
 ```
 
-## 8. Do not
+## 8. Web app (careconect-frontend)
 
-- Run the seed script in production. It refuses unless `ALLOW_SEED=true`, and it creates test accounts with known passwords.
+Deploy it as a separate Coolify resource from the `careconect-frontend` repository, build pack **Dockerfile**, port 3000.
+
+| Setting | Value |
+|---|---|
+| Domain | the web app's domain, e.g. `https://isanomed.org` or `https://app.isanomed.org` |
+| Build variable `NEXT_PUBLIC_API_BASE_URL` | `https://api.isanomed.org/api/v1` |
+| Build variable `NEXT_PUBLIC_SHOW_DEMO_ACCOUNTS` | `true` for the pilot and demos, `false` for real launch |
+
+Both are compiled into the browser bundle, so mark them as **build** variables in Coolify and redeploy after changing them.
+
+Then set on the **API**: `FRONTEND_URL` and `CORS_ORIGIN` to the web app's domain (and `PESAPAL_CALLBACK_URL` to `<web app domain>/patient/invoices/return`), and redeploy the API. Without that, the browser blocks every API call (CORS).
+
+## 9. Demo accounts
+
+Shared sample accounts for demos, shown as one-click buttons on the login page when `NEXT_PUBLIC_SHOW_DEMO_ACCOUNTS=true`.
+
+| Role | Email |
+|---|---|
+| Patient | `patient@demo.isanomed.org` |
+| Doctor | `doctor@demo.isanomed.org` (second doctor: `doctor2@demo.isanomed.org`) |
+| Sponsor | `sponsor@demo.isanomed.org` |
+| Admin | `admin@demo.isanomed.org` |
+
+Password for all: `IsanoDemo#2026` (defined in `src/db/demo-accounts.ts`).
+
+Create them in the **api** container terminal:
+
+```bash
+node dist/db/seed-demo.js                          # while NODE_ENV is not production
+ALLOW_DEMO_SEED=true node dist/db/seed-demo.js     # once NODE_ENV=production
+```
+
+The script is safe to run again: it keeps existing data and resets the demo passwords. It adds sample data the first time: doctor working hours (Monday to Friday, 08:00 to 17:00), a past consultation with an unpaid invoice, a video appointment for the next day, and an active sponsor link.
+
+- No email is ever sent to `@demo.isanomed.org` addresses, and their passwords cannot be changed from the app, so one visitor cannot lock the others out.
+- Before real launch: set `NEXT_PUBLIC_SHOW_DEMO_ACCOUNTS=false`, redeploy the web app, and suspend the accounts with `node dist/db/seed-demo.js --disable`.
+
+## 10. Do not
+
+- Run the test seed (`dist/db/seed.js`) in production. It refuses unless `ALLOW_SEED=true`, and it creates test accounts with known passwords. Use the demo accounts (section 9) instead.
 - Publish `db`, `api` or `coturn` ports to the internet. They are bound to `127.0.0.1` on purpose; traffic goes through the proxy.
 - Commit `.env` files or paste secrets into issues and chat.

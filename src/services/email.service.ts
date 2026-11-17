@@ -2,6 +2,7 @@ import { Resend } from 'resend';
 import { eq } from 'drizzle-orm';
 import { db } from '../config/database';
 import { emailSuppressions } from '../db/schemas';
+import { isDemoEmail } from '../db/demo-accounts';
 import { config } from '../config/env';
 import { logger } from '../config/logger';
 
@@ -99,6 +100,12 @@ export class EmailService {
 
     if (!this.client) {
       logger.warn(`Email not sent (Resend not configured): ${options.template}`);
+      return false;
+    }
+
+    // Demo accounts use a domain with no mailbox; sending there would only bounce.
+    if (isDemoEmail(options.to)) {
+      logger.info(`Email skipped (demo account): ${options.template}`);
       return false;
     }
 

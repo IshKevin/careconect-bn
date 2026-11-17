@@ -13,7 +13,7 @@ router.put('/:appointmentId/reschedule', requireAuth, requireRole(['patient']), 
 router.put('/:appointmentId/cancel', requireAuth, requireRole(['patient']), appointmentController.cancelAppointment.bind(appointmentController));
 
 // Doctor endpoints  
-router.get('/doctor-appointments', requireAuth, requireRole(['doctor']), appointmentController.getMyAppointments.bind(appointmentController));
+router.get('/doctor-appointments', requireAuth, requireRole(['doctor']), appointmentController.getMyDoctorAppointments.bind(appointmentController));
 router.put('/:appointmentId/status', requireAuth, requireRole(['doctor']), appointmentController.updateAppointmentStatus.bind(appointmentController));
 
 // Public endpoints
