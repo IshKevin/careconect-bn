@@ -75,7 +75,7 @@ VIDEO_JOIN_WINDOW_BEFORE_MIN=15
 VIDEO_JOIN_WINDOW_AFTER_MIN=30
 ```
 
-For production, `<coturn-host>` must be the public host or IP of the coturn server, and `VIDEO_PUBLIC_IP` must match it. Ports to open: 3478 (UDP and TCP) and 49152 to 65535 (UDP). coturn runs with host networking, so the host firewall (for example ufw) applies to these ports.
+For production, `<coturn-host>` must be the public host or IP of the coturn server, and `VIDEO_PUBLIC_IP` must match it. Ports to open: 3478 (UDP and TCP) and the relay range `VIDEO_RELAY_MIN_PORT`-`VIDEO_RELAY_MAX_PORT` (UDP, default 49152 to 65535). If the server is behind NAT (its own address is private), set `VIDEO_PRIVATE_IP` to that address and have the NAT forward the same ports to it. coturn runs with host networking, so the host firewall (for example ufw) applies to these ports.
 
 ## 7. Testing
 

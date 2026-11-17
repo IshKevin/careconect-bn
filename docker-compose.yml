@@ -66,12 +66,17 @@ services:
 
   # TURN/STUN relay for video consultations, used when a direct browser-to-browser connection is blocked.
   # It accepts only time-limited credentials made by the API from VIDEO_TURN_SECRET (see src/services/video.service.ts).
-  # In production set VIDEO_PUBLIC_IP to the server's public IP and open 3478 (UDP and TCP) and 49152-65535 (UDP).
+  # In production set VIDEO_PUBLIC_IP to the server's public IP and open 3478 (UDP and TCP) and the relay range (UDP).
+  # Server behind NAT (its own address is private, e.g. 10.x): also set VIDEO_PRIVATE_IP to that address, and have
+  # the NAT forward 3478 (UDP+TCP) and VIDEO_RELAY_MIN_PORT-VIDEO_RELAY_MAX_PORT (UDP) to it.
   coturn:
     image: coturn/coturn:4.6.2
     environment:
       VIDEO_TURN_SECRET: ${VIDEO_TURN_SECRET:?Set VIDEO_TURN_SECRET in .env (32+ random characters)}
       VIDEO_PUBLIC_IP: ${VIDEO_PUBLIC_IP:-}
+      VIDEO_PRIVATE_IP: ${VIDEO_PRIVATE_IP:-}
+      VIDEO_RELAY_MIN_PORT: ${VIDEO_RELAY_MIN_PORT:-49152}
+      VIDEO_RELAY_MAX_PORT: ${VIDEO_RELAY_MAX_PORT:-65535}
     # Host networking: coturn binds straight to the server's ports, with no Docker port mapping or NAT in
     # between. This is the reliable way to run TURN in Docker. Because it sits on the host network, it is
     # forbidden from relaying to private, loopback and link-local addresses (the server's internal services).
@@ -82,8 +87,8 @@ services:
       - >-
         exec turnserver -n --log-file=stdout --fingerprint --no-cli --realm=isanomed
         --use-auth-secret --static-auth-secret="$$VIDEO_TURN_SECRET"
-        --listening-port=3478 --min-port=49152 --max-port=65535
-        --no-tls --no-dtls --no-multicast-peers
+        --listening-port=3478 --min-port=$$VIDEO_RELAY_MIN_PORT --max-port=$$VIDEO_RELAY_MAX_PORT
+        --no-tls --no-dtls --no-multicast-peers --no-tcp-relay
         --denied-peer-ip=0.0.0.0-0.255.255.255
         --denied-peer-ip=10.0.0.0-10.255.255.255
         --denied-peer-ip=100.64.0.0-100.127.255.255
@@ -94,7 +99,8 @@ services:
         --denied-peer-ip=::1
         --denied-peer-ip=fc00::-fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
         --denied-peer-ip=fe80::-febf:ffff:ffff:ffff:ffff:ffff:ffff:ffff
-        $${VIDEO_PUBLIC_IP:+--external-ip=$$VIDEO_PUBLIC_IP}
+        $${VIDEO_PUBLIC_IP:+--external-ip=$$VIDEO_PUBLIC_IP$${VIDEO_PRIVATE_IP:+/$$VIDEO_PRIVATE_IP}}
+        $${VIDEO_PRIVATE_IP:+--listening-ip=$$VIDEO_PRIVATE_IP --relay-ip=$$VIDEO_PRIVATE_IP --allowed-peer-ip=$$VIDEO_PRIVATE_IP}
     restart: unless-stopped
 
 volumes:
