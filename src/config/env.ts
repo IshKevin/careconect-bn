@@ -43,7 +43,7 @@ const envSchema = z.object({
 
   // Resend (https://resend.com)
   RESEND_API_KEY: z.string().optional(),
-  RESEND_FROM_ADDRESS: z.string().default('IsanoMed <no-reply@careconnect.rw>'),
+  RESEND_FROM_ADDRESS: z.string().default('IsanoMed <no-reply@isanomed.org>'),
   RESEND_REPLY_TO: z.string().optional(),
   RESEND_WEBHOOK_SECRET: z.string().optional(),
 

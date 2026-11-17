@@ -105,7 +105,7 @@ Kept as-is, to avoid breaking the development environment. These should change a
 
 - JWT issuer and audience (`careconnect-bn`, `careconnect-api`, `careconnect-video`).
 - Database name, user and container names (`careconnect`).
-- Test account email domain (`@careconnect.rw`) and the default sender domain.
+- Test account email domain (`@careconnect.rw`). The default sender domain is now `isanomed.org`.
 - Support email in the configuration endpoint (`support@careconnect.demo`).
 - Frontend package name.
 

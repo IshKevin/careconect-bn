@@ -29,7 +29,7 @@ Service (auth, appointment, invoice, payment)
     ▼
 src/services/email.service.ts ──▶ Resend API (official Node SDK)
     │
-    └── Resend webhook (bounces, complaints) ──▶ POST /api/v1/misc/email/events
+    └── Resend webhook (bounces, complaints) ──▶ POST /api/v1/webhooks/resend
                                                   (signature verified) ──▶ suppress address
 ```
 
@@ -53,19 +53,24 @@ Rules:
 
 ## 4. Domain setup
 
-Owned by the person who controls the CareConnect domain:
+Sending domain: `isanomed.org` (DNS at Hostinger), Resend region `eu-west-1`. Owned by the person who controls the domain:
 
 | Record | Purpose |
 |---|---|
-| DKIM TXT record(s) shown by Resend | Signing |
-| SPF TXT record that includes Resend's sending host, merged into any existing SPF record | Authorization |
+| TXT `resend._domainkey`: DKIM key shown by Resend | Signing |
+| MX `send` → `feedback-smtp.eu-west-1.amazonses.com` (priority 10) | Bounce handling |
+| TXT `send`: `v=spf1 include:amazonses.com ~all` | Authorization |
 | DMARC `_dmarc` TXT, start with `p=none; rua=mailto:<reports address>` | Reporting. Tighten to `quarantine` after clean reports |
 
 Steps:
 
 1. Add the sending domain in Resend and create the records above.
 2. Wait for Resend to show the domain as verified.
-3. Register the webhook endpoint for bounce and complaint events and store its signing secret.
+3. Register the webhook endpoint `https://api.isanomed.org/api/v1/webhooks/resend` for the `email.bounced` and `email.complained` events and store its signing secret (`whsec_...`) in `RESEND_WEBHOOK_SECRET`.
+4. Create a "Sending access" API key limited to `isanomed.org` and store it in `RESEND_API_KEY`.
+5. Make sure `support@isanomed.org` (the reply-to address) is a real mailbox.
+
+Step-by-step deployment instructions: [../DEPLOYMENT.md](../DEPLOYMENT.md).
 
 ## 5. Templates for launch
 
@@ -83,8 +88,8 @@ Steps:
 
 ```
 RESEND_API_KEY=                    # backend only, server secret
-RESEND_FROM_ADDRESS="CareConnect <no-reply@<domain>>"
-RESEND_REPLY_TO=support@<domain>
+RESEND_FROM_ADDRESS="IsanoMed <no-reply@isanomed.org>"
+RESEND_REPLY_TO=support@isanomed.org
 RESEND_WEBHOOK_SECRET=             # verifies webhook signatures
 ```
 

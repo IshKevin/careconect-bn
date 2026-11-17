@@ -69,17 +69,17 @@ Browser opens Socket.IO /video with auth.token = joinToken
 
 ```
 VIDEO_TURN_SECRET=                    # 32+ random characters; shared with coturn
-VIDEO_PUBLIC_IP=<server-public-ip>
-VIDEO_TURN_DOMAIN=turn.<server-public-ip>.sslip.io   # or turn.your-domain; must resolve to the server
+VIDEO_PUBLIC_IP=197.243.27.200
+VIDEO_TURN_DOMAIN=turn.isanomed.org   # DNS A record turn -> 197.243.27.200
 VIDEO_STUN_URLS=                      # empty: plain STUN (UDP 3478) is not reachable when only 443 is open
-VIDEO_TURN_URLS=turns:<VIDEO_TURN_DOMAIN>:443?transport=tcp
+VIDEO_TURN_URLS=turns:turn.isanomed.org:443?transport=tcp
 VIDEO_JOIN_WINDOW_BEFORE_MIN=15
 VIDEO_JOIN_WINDOW_AFTER_MIN=30
 ```
 
-In production browsers reach coturn as **TURN over TLS on port 443**. The `coturn` service in `docker-compose.yml` carries Traefik labels (the proxy Coolify uses): Traefik terminates TLS for `VIDEO_TURN_DOMAIN`, gets its Let's Encrypt certificate, and forwards the connection to coturn on port 3478. Every other host name on 443 keeps going to the API. Only 80 and 443 must reach the server, so this works behind NAT and on networks that allow nothing but HTTPS. When both callers relay, coturn passes media between them internally, so its UDP relay ports never need to be reachable from outside. Do not assign a Coolify domain to the `coturn` service; the labels handle routing.
+In production browsers reach coturn as **TURN over TLS on port 443**. The `coturn` service in `docker-compose.yml` carries Traefik labels (the proxy Coolify uses): Traefik terminates TLS for `VIDEO_TURN_DOMAIN`, gets its Let's Encrypt certificate, and forwards the connection to coturn on port 3478. Every other host name on 443 keeps going to the API. Only 80 and 443 must reach the server, so this works behind NAT and on networks that allow nothing but HTTPS. When both callers relay, coturn passes media between them internally, so its UDP relay ports never need to be reachable from outside. Do not assign a Coolify domain to the `coturn` service; the labels handle routing. coturn joins only the proxy's shared Docker network (`PROXY_NETWORK`, default `coolify`), so the proxy reaches it without any server-wide proxy configuration; the router names are prefixed `isanomed-` so they do not clash with other projects on the server.
 
-coturn refuses to relay to private, loopback and link-local addresses (other containers and the host), except its own address, which is needed to pass media between two relayed callers. TCP relaying is disabled.
+Because other projects share that network, coturn refuses to relay to private, loopback and link-local addresses (other containers and the host), except its own address, which is needed to pass media between two relayed callers. TCP relaying is disabled.
 
 ## 7. Testing
 
@@ -90,7 +90,8 @@ coturn refuses to relay to private, loopback and link-local addresses (other con
 ## 8. Go-live checklist
 
 - [ ] `VIDEO_TURN_SECRET` set in the secret manager and in the coturn container
-- [ ] coturn reachable on its public address; relay ports open
+- [ ] DNS A record `turn.isanomed.org` → `197.243.27.200`
+- [ ] `turn.isanomed.org:443` serves a Let's Encrypt certificate and relays a test call (see [../DEPLOYMENT.md](../DEPLOYMENT.md), section 7)
 - [ ] Join window tested with real appointment times (Africa/Kigali, UTC+2)
 - [ ] Two-party call tested across networks, including a TURN-only path
 - [ ] Pilot clinic trial signed off

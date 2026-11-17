@@ -52,7 +52,7 @@ Taag is removed (closed by the provider). Email uses Resend, not Amazon SES.
 
 | ID | Repo | Pri | Est | Task |
 |---|---|---|---|---|
-| EML-01 | EXT | P0 | — | Resend account; verify sending domain (DKIM, SPF, DMARC DNS records); production API key; confirm Resend data terms |
+| EML-01 | EXT | P0 | — | Resend account; verify `isanomed.org` (DKIM, SPF, DMARC DNS records at Hostinger); production API key; webhook secret; `support@isanomed.org` mailbox; confirm Resend data terms |
 | EML-02 | BE | P0 | 3 | Email service module on Resend SDK, template registry, PHI-free check, idempotency keys, retry queue |
 | EML-03 | BE | P1 | 1 | Password reset email (wire the existing token flow; `auth.service.ts:271`) |
 | EML-04 | BE | P1 | 1 | Email verification: request and confirm endpoints (currently ❌ in IMPLEMENTATION_STATUS) |
@@ -64,7 +64,7 @@ Taag is removed (closed by the provider). Email uses Resend, not Amazon SES.
 
 | ID | Repo | Pri | Est | Task |
 |---|---|---|---|---|
-| VID-01 | EXT | P0 | — | TURN host name (VIDEO_TURN_DOMAIN) resolving to the server; TURN over TLS on 443 via Traefik; set VIDEO_TURN_SECRET |
+| VID-01 | EXT | P0 | — | DNS A record `turn.isanomed.org` → server; TURN over TLS on 443 via Traefik; set VIDEO_TURN_SECRET |
 | VID-02 | BE | P1 | 3 | Video service: create room per appointment, idempotent; delete on cancel |
 | VID-03 | BE | P1 | 2 | `GET /consultation/:id/join`: authorization, join window, meeting token |
 | VID-04 | FE | P1 | 3 | Consultation page: join button, device check, WebRTC call component (built), fallback message |

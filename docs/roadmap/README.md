@@ -11,14 +11,15 @@ This folder holds the plan for the remaining work: the chosen third-party provid
 | [03-video.md](03-video.md) | Internal video calls (WebRTC, Socket.IO signalling, coturn relay) |
 | [04-task-backlog.md](04-task-backlog.md) | Every remaining task, with IDs, priority, and estimates |
 | [05-timeline.md](05-timeline.md) | Two-week launch plan (2 to 13 November 2026), then video sprint |
+| [../DEPLOYMENT.md](../DEPLOYMENT.md) | Coolify deployment: domains (`api.isanomed.org`, `turn.isanomed.org`), DNS, environment, Resend, Pesapal IPN |
 
 ## Decisions
 
 | Area | Chosen provider | Alternative kept as fallback | Status |
 |---|---|---|---|
 | Payments (cards, MTN MoMo, Airtel Money) | Pesapal | Flutterwave | Chosen. Rwanda mobile money and RWF enablement to confirm with Pesapal |
-| Transactional email | Resend | Amazon SES | Chosen. Domain verification pending |
-| Video consultations | Internal build (WebRTC, self-hosted coturn) | None (no external video API) | Built. Needs two-network test and coturn public address |
+| Transactional email | Resend | Amazon SES | Chosen. Sending domain `isanomed.org`; verification pending |
+| Video consultations | Internal build (WebRTC, self-hosted coturn) | None (no external video API) | Built. TURN over TLS on `turn.isanomed.org:443`; needs live two-network test |
 
 ## Why these providers
 

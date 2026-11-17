@@ -104,8 +104,13 @@ services:
     ports:
       - "127.0.0.1:3478:3478/udp"
       - "127.0.0.1:3478:3478/tcp"
+    # Joins only the proxy's shared network (Coolify: "coolify"), so the proxy can always reach it. Other projects
+    # on the server share that network; the denied-peer-ip rules above keep the relay from reaching them.
+    networks:
+      - proxy
     labels:
       - traefik.enable=true
+      - traefik.docker.network=${PROXY_NETWORK:-coolify}
       - traefik.tcp.routers.isanomed-turn.entrypoints=https
       - traefik.tcp.routers.isanomed-turn.rule=HostSNI(`${VIDEO_TURN_DOMAIN:-turn.localhost}`)
       - traefik.tcp.routers.isanomed-turn.tls=true
@@ -116,3 +121,9 @@ services:
 
 volumes:
   pgdata:
+
+networks:
+  # The reverse proxy's network. Coolify creates it ("coolify"). Locally, create it once: docker network create coolify
+  proxy:
+    external: true
+    name: ${PROXY_NETWORK:-coolify}

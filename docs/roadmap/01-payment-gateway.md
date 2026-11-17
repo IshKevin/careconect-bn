@@ -123,11 +123,13 @@ Replace the MTN and Airtel variables in `careconect-bn/src/config/env.ts` and `.
 PESAPAL_ENVIRONMENT=sandbox          # sandbox | production
 PESAPAL_CONSUMER_KEY=
 PESAPAL_CONSUMER_SECRET=
-PESAPAL_IPN_URL=https://<api>/api/v1/payments/webhook/pesapal
+PESAPAL_IPN_URL=https://api.isanomed.org/api/v1/payments/webhook/pesapal
 PESAPAL_IPN_ID=                      # notification_id from RegisterIPN
 PESAPAL_CALLBACK_URL=https://<frontend>/patient/invoices/return
 PESAPAL_CURRENCY=RWF
 ```
+
+Register the IPN URL again whenever it changes (for example after a domain change) and replace `PESAPAL_IPN_ID`; see [../DEPLOYMENT.md](../DEPLOYMENT.md), section 6.
 
 Remove the `https://your-domain.com` fallbacks. The app must refuse to start in production without these values.
 

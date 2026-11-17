@@ -56,8 +56,7 @@ A professional, enterprise-grade healthcare management system backend built with
 - Node.js 18.0.0 or higher
 - npm 8.0.0 or higher
 - PostgreSQL 13+ database
-- Redis server (optional but recommended)
-- PayPack merchant account (for payments)
+- Pesapal merchant account (payments) and Resend account (email)
 
 ## 🛠️ Installation
 
@@ -99,40 +98,14 @@ A professional, enterprise-grade healthcare management system backend built with
 
 ### Environment Variables
 
-Key environment variables that need to be configured:
-
-```env
-# Database
-DATABASE_URL=postgresql://username:password@localhost:5432/careconnect_dev
-
-# JWT Secrets (generate secure random strings)
-JWT_SECRET=your-super-secret-jwt-key-32-chars-minimum
-JWT_REFRESH_SECRET=your-super-secret-refresh-key-32-chars
-
-# Encryption Key (32 characters)
-ENCRYPTION_KEY=your-32-character-encryption-key-here
-
-# PayPack Configuration
-PAYPACK_CLIENT_ID=your-paypack-client-id
-PAYPACK_CLIENT_SECRET=your-paypack-client-secret
-PAYPACK_ENVIRONMENT=sandbox
-
-# Email Configuration
-SMTP_HOST=smtp.gmail.com
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
-
-# SMS Configuration (Twilio)
-TWILIO_ACCOUNT_SID=your-twilio-account-sid
-TWILIO_AUTH_TOKEN=your-twilio-auth-token
-```
+Copy `.env.example` to `.env` and fill it in. Every variable is listed there with a comment. Main groups: database, JWT secrets, encryption key, Pesapal (payments), Resend (email) and video (coturn).
 
 ## 📚 API Documentation
 
 ### Base URL
 ```
 Development: http://localhost:3000/api/v1
-Production: https://api.careconnect.rw/api/v1
+Production: https://api.isanomed.org/api/v1
 ```
 
 ### Authentication
@@ -216,6 +189,10 @@ docker build -t careconnect-backend .
 docker-compose up -d
 ```
 
+### Production (Coolify)
+
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md): domains, DNS records, environment variables, Resend, Pesapal IPN registration and post-deploy checks.
+
 ### Environment-specific Configurations
 
 - **Development**: Full logging, debug mode enabled
@@ -276,9 +253,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **Email**: support@careconnect.rw
-- **Documentation**: https://docs.careconnect.rw
-- **API Support**: api-support@careconnect.rw
+- **Email**: support@isanomed.org
 
 ## 🙏 Acknowledgments
 
