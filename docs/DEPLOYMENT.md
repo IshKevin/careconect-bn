@@ -78,6 +78,9 @@ VIDEO_STUN_URLS=
 VIDEO_TURN_URLS=turns:turn.isanomed.org:443?transport=tcp
 ```
 
+After paying, patients return to `PESAPAL_CALLBACK_URL`. Sponsors who pay for a linked patient return to `<FRONTEND_URL>/sponsor/invoices/return`, so `FRONTEND_URL` must be the web app's public address.
+
+
 Generate the JWT secrets, `ENCRYPTION_KEY` and `VIDEO_TURN_SECRET` with `openssl` as described at the top of `.env.example`.
 
 With `NODE_ENV=production` the API refuses to start if any of these are missing: `PESAPAL_CONSUMER_KEY`, `PESAPAL_CONSUMER_SECRET`, `PESAPAL_IPN_ID`, `PESAPAL_IPN_URL`, `PESAPAL_CALLBACK_URL`, `RESEND_API_KEY`, `VIDEO_TURN_SECRET`.
