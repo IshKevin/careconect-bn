@@ -93,13 +93,18 @@ export class PaymentService {
     const amount = Number(invoice.totalAmount);
     if (!(amount > 0)) throw new ValidationError('Invoice amount must be greater than zero');
 
-    const [patient] = await db
+    // The person paying fills in Pesapal's checkout: the patient, or the sponsor paying on their behalf.
+    const [payer] = await db
       .select({ email: users.email, phoneNumber: users.phoneNumber, firstName: userProfiles.firstName, lastName: userProfiles.lastName })
       .from(users)
       .leftJoin(userProfiles, eq(userProfiles.userId, users.userId))
-      .where(eq(users.userId, invoice.patientId))
+      .where(eq(users.userId, requester.userType === 'sponsor' ? requester.userId : invoice.patientId))
       .limit(1);
-    if (!patient) throw new NotFoundError('Patient');
+    if (!payer) throw new NotFoundError('Patient');
+
+    // After checkout Pesapal sends the browser back here. Sponsors cannot open patient pages, so they get their own.
+    const callbackUrl =
+      requester.userType === 'sponsor' ? new URL('/sponsor/invoices/return', config.frontendUrl).toString() : config.pesapal.callbackUrl;
 
     const txRef = uuidv4();
     await db.insert(paymentTransactions).values({
@@ -117,13 +122,13 @@ export class PaymentService {
         amount,
         currency: config.pesapal.currency,
         description: `IsanoMed invoice ${invoice.invoiceNumber}`,
-        callbackUrl: config.pesapal.callbackUrl,
+        callbackUrl,
         notificationId: config.pesapal.ipnId,
         billingAddress: {
-          email_address: patient.email,
-          phone_number: patient.phoneNumber ?? undefined,
-          first_name: patient.firstName ?? 'Patient',
-          last_name: patient.lastName ?? 'IsanoMed',
+          email_address: payer.email,
+          phone_number: payer.phoneNumber ?? undefined,
+          first_name: payer.firstName ?? 'Patient',
+          last_name: payer.lastName ?? 'IsanoMed',
         },
       });
 
